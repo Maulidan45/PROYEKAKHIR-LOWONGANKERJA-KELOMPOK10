@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\WilayahService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -37,6 +38,60 @@ class Lowongan extends Model
     public function scopeTerbuka(Builder $kueri): Builder
     {
         return $kueri->where('aktif', true)->whereDate('batas_lamaran', '>=', today());
+    }
+
+    /**
+     * Saring lowongan berdasarkan kata kunci, kategori, tipe kerja, provinsi, dan lokasi.
+     *
+     * @param  array<string, mixed>  $penyaring
+     */
+    public function scopeSaring(Builder $kueri, array $penyaring, ?WilayahService $wilayah = null): Builder
+    {
+        $kueri->when($penyaring['kata_kunci'] ?? null, function (Builder $kueri, string $cari): void {
+            $nilaiCari = '%'.mb_strtolower($cari).'%';
+            $kueri->where(function (Builder $bagian) use ($nilaiCari): void {
+                $bagian->whereRaw('lower(judul) like ?', [$nilaiCari])
+                    ->orWhereRaw('lower(lokasi) like ?', [$nilaiCari])
+                    ->orWhereHas('perusahaan', fn (Builder $perusahaan) => $perusahaan->whereRaw('lower(name) like ?', [$nilaiCari]));
+            });
+        });
+
+        $kueri->when($penyaring['kategori'] ?? null, fn (Builder $kueri, mixed $kategori) => $kueri->where('kategori_id', $kategori));
+        $kueri->when($penyaring['tipe'] ?? null, fn (Builder $kueri, string $tipe) => $kueri->where('tipe_kerja', $tipe));
+        $kueri->when($penyaring['gaji_min'] ?? null, fn (Builder $kueri, mixed $gajiMin) => $kueri->where('gaji_max', '>=', (int) $gajiMin));
+
+        $lokasi = trim((string) ($penyaring['lokasi'] ?? ''));
+        $provinsi = trim((string) ($penyaring['provinsi'] ?? ''));
+
+        if ($lokasi !== '') {
+            $wilayahLayanan = $wilayah ?? app(WilayahService::class);
+            $kataLokasi = $wilayahLayanan->bersihkanAwalanWilayah($lokasi);
+            $kueri->whereRaw('lower(lokasi) like ?', ['%'.mb_strtolower($kataLokasi).'%']);
+        } elseif ($provinsi !== '') {
+            $wilayahLayanan = $wilayah ?? app(WilayahService::class);
+            $kataWilayah = $wilayahLayanan->kataKunciWilayahProvinsi($provinsi);
+
+            if ($kataWilayah !== []) {
+                $kueri->where(function (Builder $bagian) use ($kataWilayah): void {
+                    foreach ($kataWilayah as $indeks => $namaWilayah) {
+                        $pola = '%'.mb_strtolower($namaWilayah).'%';
+                        if ($indeks === 0) {
+                            $bagian->whereRaw('lower(lokasi) like ?', [$pola]);
+                        } else {
+                            $bagian->orWhereRaw('lower(lokasi) like ?', [$pola]);
+                        }
+                    }
+                });
+            }
+        }
+
+        match ($penyaring['urutkan'] ?? 'terbaru') {
+            'gaji_tertinggi' => $kueri->orderByDesc('gaji_max')->orderByDesc('id'),
+            'batas_terdekat' => $kueri->orderBy('batas_lamaran')->orderByDesc('id'),
+            default => $kueri->latest(),
+        };
+
+        return $kueri;
     }
 
     public function statusLowongan(): string

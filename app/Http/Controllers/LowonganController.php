@@ -54,6 +54,36 @@ class LowonganController extends Controller
         ]);
     }
 
+    public function show(Request $permintaan, Lowongan $lowongan): View
+    {
+        abort_unless($lowongan->aktif && $lowongan->batas_lamaran->gte(today()), 404);
+
+        $lowongan->load(['kategori:id,nama', 'perusahaan:id,name,profil_pendaftaran']);
+
+        $sudahMelamar = $permintaan->user()?->role === 'user'
+            ? $lowongan->lamarans()->where('pelamar_id', $permintaan->user()->id)->exists()
+            : false;
+
+        $sudahDisimpan = $permintaan->user()?->role === 'user'
+            ? $permintaan->user()->lowonganTersimpan()->where('lowongan_id', $lowongan->id)->exists()
+            : false;
+
+        $lowonganLainPerusahaan = Lowongan::terbuka()
+            ->where('perusahaan_id', $lowongan->perusahaan_id)
+            ->where('id', '!=', $lowongan->id)
+            ->with('kategori:id,nama')
+            ->latest()
+            ->limit(3)
+            ->get();
+
+        return view('lowongan.show', [
+            'lowongan' => $lowongan,
+            'sudahMelamar' => $sudahMelamar,
+            'sudahDisimpan' => $sudahDisimpan,
+            'lowonganLainPerusahaan' => $lowonganLainPerusahaan,
+        ]);
+    }
+
     public function create(): View
     {
         $this->authorize('create', Lowongan::class);

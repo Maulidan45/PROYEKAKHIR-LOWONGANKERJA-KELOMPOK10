@@ -7,33 +7,28 @@ use App\Http\Requests\PerbaruiLowonganRequest;
 use App\Http\Requests\SimpanLowonganRequest;
 use App\Http\Resources\LowonganResource;
 use App\Models\Lowongan;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\WilayahService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class LowonganController extends Controller
 {
-    public function index(Request $permintaan): AnonymousResourceCollection
+    public function index(Request $permintaan, WilayahService $wilayah): AnonymousResourceCollection
     {
         $penyaring = $permintaan->validate([
             'kata_kunci' => ['nullable', 'string', 'max:150'],
             'kategori' => ['nullable', 'integer', 'exists:kategoris,id'],
             'tipe' => ['nullable', 'in:Penuh waktu,Paruh waktu,Magang,Jarak jauh'],
+            'provinsi' => ['nullable', 'string', 'max:10', 'regex:/^\d+$/'],
             'lokasi' => ['nullable', 'string', 'max:100'],
+            'gaji_min' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
+            'urutkan' => ['nullable', 'in:terbaru,gaji_tertinggi,batas_terdekat'],
         ]);
 
-        $kueri = Lowongan::terbuka()->with(['kategori:id,nama', 'perusahaan:id,name'])->latest();
-        $kueri->when($penyaring['kata_kunci'] ?? null, function (Builder $kueri, string $cari): void {
-            $nilaiCari = '%'.mb_strtolower($cari).'%';
-            $kueri->where(fn (Builder $bagian) => $bagian
-                ->whereRaw('lower(judul) like ?', [$nilaiCari])
-                ->orWhereRaw('lower(lokasi) like ?', [$nilaiCari])
-                ->orWhereHas('perusahaan', fn (Builder $perusahaan) => $perusahaan->whereRaw('lower(name) like ?', [$nilaiCari])));
-        });
-        $kueri->when($penyaring['kategori'] ?? null, fn (Builder $kueri, int $kategori) => $kueri->where('kategori_id', $kategori));
-        $kueri->when($penyaring['tipe'] ?? null, fn (Builder $kueri, string $tipe) => $kueri->where('tipe_kerja', $tipe));
-        $kueri->when($penyaring['lokasi'] ?? null, fn (Builder $kueri, string $lokasi) => $kueri->where('lokasi', $lokasi));
+        $kueri = Lowongan::terbuka()
+            ->with(['kategori:id,nama', 'perusahaan:id,name'])
+            ->saring($penyaring, $wilayah);
 
         return LowonganResource::collection($kueri->paginate(12)->withQueryString());
     }

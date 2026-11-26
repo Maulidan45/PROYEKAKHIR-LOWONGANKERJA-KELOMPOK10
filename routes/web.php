@@ -6,45 +6,26 @@ use App\Http\Controllers\DasborController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LamaranController;
 use App\Http\Controllers\LowonganController;
-use App\Models\Kategori;
-use App\Models\Lowongan;
+use App\Http\Controllers\SimpanLowonganController;
 use App\Models\User;
+use App\Services\LowonganEksternalService;
+use App\Services\WilayahService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function (Request $permintaan): View {
-    $penyaring = $permintaan->validate([
-        'kata_kunci' => ['nullable', 'string', 'max:150', 'not_regex:/<\s*script\b/i'],
-        'kategori' => ['nullable', 'integer', 'exists:kategoris,id'],
-        'tipe' => ['nullable', 'in:Penuh waktu,Paruh waktu,Magang,Jarak jauh'],
-        'lokasi' => ['nullable', 'string', 'max:100'],
-    ]);
+Route::get('/', function (Request $permintaan, WilayahService $wilayah): View|RedirectResponse {
+    if ($pengguna = $permintaan->user()) {
+        return redirect()->route('dashboard.role', ['role' => $pengguna->role]);
+    }
 
-    $kueri = Lowongan::terbuka()->with(['kategori', 'perusahaan'])->withCount('lamarans')->latest();
-    $kueri->when($penyaring['kata_kunci'] ?? null, function ($kueri, string $cari): void {
-        $nilaiCari = '%'.mb_strtolower($cari).'%';
-        $kueri->where(function ($bagian) use ($nilaiCari): void {
-            $bagian->whereRaw('lower(judul) like ?', [$nilaiCari])
-                ->orWhereRaw('lower(lokasi) like ?', [$nilaiCari])
-                ->orWhereHas('perusahaan', fn ($perusahaan) => $perusahaan->whereRaw('lower(name) like ?', [$nilaiCari]));
-        });
-    });
-    $kueri->when($penyaring['kategori'] ?? null, fn ($kueri, $kategori) => $kueri->where('kategori_id', $kategori));
-    $kueri->when($penyaring['tipe'] ?? null, fn ($kueri, $tipe) => $kueri->where('tipe_kerja', $tipe));
-    $kueri->when($penyaring['lokasi'] ?? null, fn ($kueri, $lokasi) => $kueri->where('lokasi', $lokasi));
-
-    return view('welcome', [
-        'daftarLowongan' => $kueri->paginate(12)->withQueryString(),
-        'daftarKategori' => Kategori::orderBy('nama')->get(),
-        'daftarLokasi' => Lowongan::terbuka()->distinct()->orderBy('lokasi')->pluck('lokasi'),
-        'cari' => $penyaring['kata_kunci'] ?? '',
-        'kategori' => (string) ($penyaring['kategori'] ?? ''),
-        'tipe' => $penyaring['tipe'] ?? '',
-        'lokasi' => $penyaring['lokasi'] ?? '',
-    ]);
+    return view('welcome', AutentikasiController::dataKatalog($permintaan, $wilayah));
 })->name('home');
+
+Route::middleware('auth')->get('/beranda', function (Request $permintaan, WilayahService $wilayah): View {
+    return view('welcome', AutentikasiController::dataKatalog($permintaan, $wilayah));
+})->name('katalog');
 
 Route::middleware('guest')->group(function (): void {
     Route::view('/masuk', 'auth', ['pendaftaran' => false])->name('login');
@@ -65,9 +46,31 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/lowongan/{lowongan}/pelamar', [LamaranController::class, 'pelamar'])->name('lowongan.pelamar');
     Route::get('/perusahaan/pelamar', [LamaranController::class, 'daftarPerusahaan'])->name('perusahaan.pelamar.index');
     Route::post('/lowongan/{lowongan}/lamaran', [LamaranController::class, 'store'])->name('lamaran.store');
+    Route::post('/lowongan/{lowongan}/simpan', [SimpanLowonganController::class, 'toggle'])->name('lowongan.simpan');
     Route::get('/lamaran', [LamaranController::class, 'index'])->name('lamaran.index');
+    Route::get('/lamaran/{lamaran}/cv', [LamaranController::class, 'unduhCv'])->name('lamaran.cv');
     Route::patch('/lamaran/{lamaran}', [LamaranController::class, 'update'])->name('lamaran.update');
+    Route::post('/notifikasi/baca', function (Request $permintaan): RedirectResponse {
+        $permintaan->user()->unreadNotifications->markAsRead();
+
+        return back()->with('status', 'Semua notifikasi ditandai sudah dibaca.');
+    })->name('notifikasi.baca');
+    Route::post('/admin/lowongan/sinkron', function (Request $permintaan, LowonganEksternalService $layanan): RedirectResponse {
+        abort_unless($permintaan->user()->role === 'admin', 403);
+
+        try {
+            $jumlah = $layanan->sinkronDariRemotive(15);
+
+            return back()->with('status', "Berhasil menarik {$jumlah} lowongan dari API Remotive.");
+        } catch (Throwable) {
+            return back()->withErrors(['sinkron' => 'Gagal menghubungi API Remotive. Silakan coba lagi nanti.']);
+        }
+    })->name('admin.lowongan.sinkron');
     Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
     Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');
     Route::delete('/kategori/{kategori}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
 });
+
+Route::get('/lowongan/{lowongan}', [LowonganController::class, 'show'])
+    ->whereNumber('lowongan')
+    ->name('lowongan.show');

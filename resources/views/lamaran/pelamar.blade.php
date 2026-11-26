@@ -24,6 +24,12 @@
                                 <strong class="block truncate text-sm font-semibold text-slate-900">{{ $lamaran->pelamar->name }}</strong>
                                 <p class="mt-0.5 truncate text-sm text-slate-600">{{ $lamaran->pelamar->email }}</p>
                                 <p class="mt-0.5 text-xs text-slate-500">Melamar {{ $lamaran->created_at->format('d M Y') }}</p>
+                                @if ($lamaran->catatan)
+                                    <p class="mt-1 text-xs text-slate-700">{{ $lamaran->catatan }}</p>
+                                @endif
+                                @if ($lamaran->cv_path)
+                                    <a class="mt-1 inline-flex text-xs font-semibold text-blue-700 hover:underline" href="{{ route('lamaran.cv', $lamaran) }}">Unduh CV (PDF)</a>
+                                @endif
                             </div>
                             <x-status-lamaran :status="$lamaran->status" />
                             <form class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center" method="POST" action="{{ route('lamaran.update', $lamaran) }}" data-kirim>

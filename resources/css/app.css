@@ -189,9 +189,15 @@ input[type='password']::-ms-reveal, input[type='password']::-ms-clear, input[typ
 .halaman-beranda .merek { color: #0878c5; font-size: 2.6rem; }
 .halaman-beranda .merek span { color: #f77b27; }
 .halaman-beranda .aksi-navigasi > a:not(.tombol) { color: #141b2b; font-size: 1.05rem; font-weight: 400; }
-.halaman-beranda .aksi-navigasi { gap: 32px; }
+.halaman-beranda .aksi-navigasi { gap: 20px; }
 .halaman-beranda .aksi-navigasi > .tombol { background: #ff7a21; border-color: #ff7a21; color: #241b15; border-radius: 10px; padding: 13px 24px; font-weight: 600; }
 .halaman-beranda .aksi-navigasi > .tombol:hover { background: #ff903f; }
+/* Nav links (Cari Kerja, Kategori) in center of navbar */
+.tautan-nav { display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; flex: 1; }
+.tautan-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 8px; color: #374151; font-size: .95rem; font-weight: 500; text-decoration: none; transition: background .12s, color .12s; }
+.tautan-nav a:hover, .tautan-nav a[aria-current] { background: #f0f4ff; color: #1d4ed8; }
+.halaman-beranda .tautan-nav a { color: #374151; }
+.halaman-beranda .tautan-nav a:hover, .halaman-beranda .tautan-nav a[aria-current] { background: #ebf3fe; color: #0878c5; }
 .sorotan-karier { overflow: hidden; background: #159be8; }
 .isi-sorotan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 32px; padding-block: 8px 22px; }
 .isi-utama { min-width: 0; }
@@ -204,7 +210,7 @@ input[type='password']::-ms-reveal, input[type='password']::-ms-clear, input[typ
 .tombol-cari { min-height: 54px; padding: 12px; border-radius: 9px; background: #3545ef; border-color: #3545ef; }
 .tombol-cari:hover { background: #2938d5; border-color: #2938d5; }
 .tombol-cari svg { width: 25px; height: 25px; }
-.penyaring-pencarian { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.penyaring-pencarian { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .kolom-dengan-ikon { position: relative; min-width: 0; }
 .kolom-dengan-ikon svg { position: absolute; z-index: 1; top: 50%; left: 14px; width: 21px; height: 21px; transform: translateY(-50%); pointer-events: none; }
 .kolom-dengan-ikon select { padding-left: 48px; }
@@ -241,8 +247,65 @@ input[type='password']::-ms-reveal, input[type='password']::-ms-clear, input[typ
 .penyaring-aktif { color: #526175; margin-bottom: 24px; overflow-wrap: anywhere; }
 .penyaring-aktif a { display: inline-flex; align-items: center; min-height: 44px; margin-left: 14px; }
 .daftar-lowongan { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-.kartu-lowongan { display: flex; flex-direction: column; min-width: 0; padding: 22px; border: 1px solid #cdd4de; border-radius: 10px; }
-.kartu-lowongan-publik { min-height: 300px; }
+.kartu-lowongan { display: flex; flex-direction: column; min-width: 0; padding: 22px; border: 1px solid #cdd4de; border-radius: 10px; background: #fff; }
+.kartu-lowongan-publik { position: relative; min-height: 240px; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.kartu-lowongan-publik:hover { border-color: #2563eb; box-shadow: 0 10px 24px rgba(15, 23, 42, .08); transform: translateY(-2px); }
+.kepala-kartu-publik { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.aksi-simpan-kartu { position: relative; z-index: 2; flex-shrink: 0; }
+.tombol-ikon-simpan { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #cbd5e1; border-radius: 999px; background: #fff; color: #64748b; cursor: pointer; transition: border-color .15s ease, color .15s ease; }
+.tombol-ikon-simpan:hover, .tombol-ikon-simpan.tersimpan { border-color: #2563eb; color: #2563eb; }
+.tombol-ikon-simpan svg { width: 17px; height: 17px; }
+.tautan-lowongan { color: inherit; text-decoration: none; }
+.tautan-lowongan:hover { color: #1d4ed8; text-decoration: underline; }
+.tautan-lowongan::after { content: ''; position: absolute; inset: 0; }
+.aksi-kartu-lowongan { position: relative; z-index: 1; margin-top: 14px; }
+.detail-lowongan-halaman { padding: 28px 0 64px; }
+.jejak-halaman { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 20px; font-size: .9rem; color: #64748b; }
+.jejak-halaman a { color: #2563eb; text-decoration: none; font-weight: 500; }
+.jejak-halaman a:hover { text-decoration: underline; }
+.tata-letak-detail { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.kartu-detail-lowongan { background: #fff; border: 1px solid #cdd4de; border-radius: 12px; padding: 28px; }
+.kepala-detail-lowongan { display: flex; flex-direction: column; gap: 20px; padding-bottom: 22px; border-bottom: 1px solid #e5e9f0; }
+.baris-atas-detail { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.kepala-detail-lowongan h1 { margin: 0 0 6px; font-size: 1.7rem; line-height: 1.25; color: #0f172a; }
+.subjudul-detail-pt { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .95rem; color: #64748b; }
+.subjudul-detail-pt a { color: #2563eb; font-weight: 600; text-decoration: none; }
+.subjudul-detail-pt a:hover { text-decoration: underline; }
+.aksi-atas-detail { display: flex; flex-wrap: wrap; gap: 10px; }
+.kisi-meta-detail { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.item-meta-detail { display: flex; align-items: flex-start; gap: 10px; }
+.item-meta-detail svg { width: 19px; height: 19px; color: #64748b; margin-top: 2px; flex-shrink: 0; }
+.label-detail { display: block; font-size: .82rem; color: #64748b; margin-bottom: 2px; }
+.nilai-detail { display: block; font-size: .95rem; font-weight: 600; color: #0f172a; }
+.deskripsi-detail-lowongan { padding: 22px 0; border-bottom: 1px solid #e5e9f0; }
+.deskripsi-detail-lowongan h2, .aksi-detail-lowongan h2 { font-size: 1.15rem; margin-bottom: 12px; color: #0f172a; }
+.deskripsi-detail-lowongan p { line-height: 1.75; color: #334155; }
+.aksi-detail-lowongan { padding-top: 22px; }
+.status-sudah-lamar { font-weight: 600; color: #0f766e; }
+.form-lamar-detail { display: grid; gap: 14px; max-width: 520px; }
+.bidang-formulir { display: grid; gap: 6px; }
+.bidang-formulir label { font-size: .9rem; font-weight: 600; color: #1e293b; }
+.bidang-formulir input[type="file"], .bidang-formulir textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font: inherit; background: #fff; }
+.pesan-galat { font-size: .85rem; color: #b91c1c; }
+.kolom-profil-pt { display: grid; gap: 18px; }
+.kartu-profil-pt { background: #fff; border: 1px solid #cdd4de; border-radius: 12px; padding: 24px; }
+.kepala-profil-pt { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.kepala-profil-pt h2 { font-size: 1.1rem; line-height: 1.3; color: #0f172a; }
+.inisial-pt-besar { width: 48px; height: 48px; font-size: 1.2rem; }
+.status-pt-aktif { font-size: .82rem; color: #0f766e; font-weight: 600; margin-top: 2px; }
+.daftar-info-pt { display: grid; gap: 10px; padding: 14px 0; border-top: 1px solid #e5e9f0; border-bottom: 1px solid #e5e9f0; margin-bottom: 16px; list-style: none; }
+.daftar-info-pt li { display: flex; align-items: flex-start; gap: 10px; font-size: .9rem; color: #334155; }
+.daftar-info-pt svg { width: 17px; height: 17px; color: #64748b; flex-shrink: 0; margin-top: 2px; }
+.daftar-info-pt a { color: #2563eb; word-break: break-word; }
+.tentang-pt h3, .kartu-lowongan-lain-pt h3 { font-size: .98rem; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+.tentang-pt p { font-size: .9rem; line-height: 1.65; color: #475569; }
+.daftar-lowongan-lain-pt { display: grid; gap: 10px; list-style: none; }
+.daftar-lowongan-lain-pt a { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: inherit; }
+.daftar-lowongan-lain-pt a:hover { border-color: #2563eb; background: #f8fafc; }
+.daftar-lowongan-lain-pt strong { font-size: .92rem; color: #0f172a; }
+.daftar-lowongan-lain-pt span { font-size: .82rem; color: #64748b; }
+@media (max-width: 960px) { .tata-letak-detail { grid-template-columns: 1fr; } .kisi-meta-detail { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .kisi-meta-detail { grid-template-columns: 1fr; } }
 .identitas-lowongan { display: flex; align-items: start; gap: 18px; }
 .identitas-lowongan > div { min-width: 0; }
 .inisial-perusahaan { display: grid; place-items: center; flex-shrink: 0; width: 56px; height: 56px; border: 1px solid #dce8ef; border-radius: 50%; background: #f1f8fd; color: #12639a; font-family: Georgia, serif; font-size: 1.8rem; }

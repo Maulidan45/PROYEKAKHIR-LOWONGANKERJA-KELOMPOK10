@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'wilayah' => [
+        'base_url' => env('WILAYAH_API_URL', 'https://www.emsifa.com/api-wilayah-indonesia/api'),
+    ],
+
+    'remotive' => [
+        'base_url' => env('REMOTIVE_API_URL', 'https://remotive.com/api'),
+    ],
+
 ];

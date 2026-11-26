@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PermintaanPendaftaran;
+use App\Models\Kategori;
+use App\Models\Lowongan;
 use App\Models\User;
+use App\Services\WilayahService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,6 +54,48 @@ class AutentikasiController extends Controller
         $permintaan->session()->regenerate();
 
         return redirect()->route('dashboard');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function dataKatalog(Request $permintaan, WilayahService $wilayah): array
+    {
+        $penyaring = $permintaan->validate([
+            'kata_kunci' => ['nullable', 'string', 'max:150', 'not_regex:/<\s*script\b/i'],
+            'kategori' => ['nullable', 'integer', 'exists:kategoris,id'],
+            'tipe' => ['nullable', 'in:Penuh waktu,Paruh waktu,Magang,Jarak jauh'],
+            'provinsi' => ['nullable', 'string', 'max:10', 'regex:/^\d+$/'],
+            'lokasi' => ['nullable', 'string', 'max:100'],
+            'gaji_min' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
+            'urutkan' => ['nullable', 'in:terbaru,gaji_tertinggi,batas_terdekat'],
+        ]);
+
+        $kueri = Lowongan::terbuka()
+            ->with(['kategori', 'perusahaan'])
+            ->withCount('lamarans')
+            ->saring($penyaring, $wilayah);
+
+        $provinsiId = (string) ($penyaring['provinsi'] ?? '');
+        $lowonganTersimpanIds = $permintaan->user()?->role === 'user'
+            ? $permintaan->user()->lowonganTersimpan()->pluck('lowongan_id')->all()
+            : [];
+
+        return [
+            'daftarLowongan' => $kueri->paginate(12)->withQueryString(),
+            'daftarKategori' => Kategori::orderBy('nama')->get(),
+            'daftarProvinsi' => $wilayah->daftarProvinsi(),
+            'daftarKabupaten' => $provinsiId !== '' ? $wilayah->daftarKabupaten($provinsiId) : [],
+            'daftarLokasi' => Lowongan::terbuka()->distinct()->orderBy('lokasi')->pluck('lokasi'),
+            'lowonganTersimpanIds' => $lowonganTersimpanIds,
+            'cari' => $penyaring['kata_kunci'] ?? '',
+            'kategori' => (string) ($penyaring['kategori'] ?? ''),
+            'tipe' => $penyaring['tipe'] ?? '',
+            'provinsi' => $provinsiId,
+            'lokasi' => $penyaring['lokasi'] ?? '',
+            'gajiMin' => (string) ($penyaring['gaji_min'] ?? ''),
+            'urutkan' => (string) ($penyaring['urutkan'] ?? 'terbaru'),
+        ];
     }
 
     public function keluar(Request $permintaan): RedirectResponse

@@ -54,8 +54,14 @@ class DasborController extends Controller
             });
             $lowongan->when($penyaring['kategori'] ?? null, fn ($kueri, $kategori) => $kueri->where('kategori_id', $kategori));
             $lowongan->when($penyaring['lokasi'] ?? null, fn ($kueri, $lokasi) => $kueri->where('lokasi', $lokasi));
-            $data['ringkasan'] = ['Lamaran terkirim' => $permintaan->user()->lamarans()->count(), 'Lamaran ditinjau' => $permintaan->user()->lamarans()->where('status', 'Ditinjau')->count()];
+            $data['ringkasan'] = [
+                'Lamaran terkirim' => $permintaan->user()->lamarans()->count(),
+                'Lamaran ditinjau' => $permintaan->user()->lamarans()->where('status', 'Ditinjau')->count(),
+                'Lowongan tersimpan' => $permintaan->user()->lowonganTersimpan()->count(),
+            ];
             $data['daftarLowongan'] = $lowongan->latest()->paginate(12)->withQueryString();
+            $data['lowonganTersimpan'] = $permintaan->user()->lowonganTersimpan()->with(['kategori:id,nama', 'perusahaan:id,name'])->latest('simpan_lowongans.created_at')->limit(6)->get();
+            $data['notifikasiTerbaru'] = $permintaan->user()->unreadNotifications()->latest()->limit(5)->get();
             $data['daftarKategori'] = Kategori::orderBy('nama')->get(['id', 'nama']);
             $data['daftarLokasi'] = Lowongan::terbuka()->distinct()->orderBy('lokasi')->pluck('lokasi');
             $data['penyaring'] = $penyaring;
@@ -65,6 +71,7 @@ class DasborController extends Controller
             $data['ringkasan'] = ['Akun terdaftar' => User::count(), 'Lowongan aktif' => Lowongan::terbuka()->count(), 'Kategori' => Kategori::count(), 'Lamaran' => Lamaran::count()];
             $data['daftarAkun'] = User::latest('id')->paginate(10);
             $data['jumlahAkun'] = User::selectRaw('role, count(*) as total')->groupBy('role')->pluck('total', 'role');
+            $data['lowonganTerbaruAdmin'] = Lowongan::terbuka()->with(['kategori:id,nama', 'perusahaan:id,name'])->latest()->limit(5)->get();
         }
 
         return view('dashboard', $data);
