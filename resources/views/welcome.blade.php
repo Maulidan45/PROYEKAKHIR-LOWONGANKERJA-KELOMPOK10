@@ -150,17 +150,26 @@
                     <ul class="rincian-lowongan" aria-label="Informasi posisi">
                         <li>{{ $lowongan->tipe_kerja }}</li>
                         <li>{{ $lowongan->kategori->nama }}</li>
+                        @if ($lowongan->adalahEksternal())
+                            <li>Eksternal · Remotive</li>
+                        @endif
                     </ul>
                     <div class="bagian-bawah-lowongan">
-                        <p class="gaji-lowongan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M7 7V4h10v3M3 12h18M10 12v3h4v-3"/></svg>Rp {{ number_format($lowongan->gaji_min, 0, ',', '.') }}–{{ number_format($lowongan->gaji_max, 0, ',', '.') }}<span class="periode-gaji">/ bulan</span></p>
+                        <p class="gaji-lowongan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M7 7V4h10v3M3 12h18M10 12v3h4v-3"/></svg>
+                            @if ($lowongan->gaji_min && $lowongan->gaji_max)
+                                Rp {{ number_format($lowongan->gaji_min, 0, ',', '.') }}–{{ number_format($lowongan->gaji_max, 0, ',', '.') }}<span class="periode-gaji">/ bulan</span>
+                            @else
+                                Gaji sesuai ketentuan
+                            @endif
+                        </p>
                         <span class="kode-lowongan">{{ $lowongan->created_at->locale('id')->diffForHumans() }}</span>
                     </div>
                 </article>
             @empty
-                    <h3>Belum ada lowongan yang sesuai dengan pencarianmu.</h3>
-                    <p>Coba ubah kata kunci atau filter untuk melihat lowongan lainnya.</p>
-                    <a class="tombol tombol-sekunder" href="{{ route('home') }}">Lihat semua lowongan</a>
-                    <a class="tombol tombol-sekunder" href="{{ route('home') }}">Hapus semua filter</a>
+                <div class="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+                    <h3 class="text-lg font-bold text-slate-900">Belum ada lowongan yang sesuai dengan pencarianmu.</h3>
+                    <p class="mt-1 text-sm text-slate-600">Coba ubah kata kunci atau filter untuk melihat lowongan lainnya.</p>
+                    <a class="tombol tombol-sekunder mt-4" href="{{ auth()->check() ? route('katalog') : route('home') }}">Lihat semua lowongan</a>
                 </div>
             @endforelse
         </div>

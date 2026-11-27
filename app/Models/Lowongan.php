@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['kategori_id', 'judul', 'lokasi', 'tipe_kerja', 'gaji_min', 'gaji_max', 'batas_lamaran', 'deskripsi', 'aktif'])]
+#[Fillable(['kategori_id', 'judul', 'lokasi', 'tipe_kerja', 'gaji_min', 'gaji_max', 'batas_lamaran', 'deskripsi', 'aktif', 'sumber', 'eksternal_id', 'sumber_url'])]
 class Lowongan extends Model
 {
     use HasFactory;
@@ -37,7 +37,9 @@ class Lowongan extends Model
 
     public function scopeTerbuka(Builder $kueri): Builder
     {
-        return $kueri->where('aktif', true)->whereDate('batas_lamaran', '>=', today());
+        return $kueri->where('aktif', true)->where(function (Builder $bagian): void {
+            $bagian->whereNull('batas_lamaran')->orWhereDate('batas_lamaran', '>=', today());
+        });
     }
 
     /**
@@ -87,11 +89,21 @@ class Lowongan extends Model
 
         match ($penyaring['urutkan'] ?? 'terbaru') {
             'gaji_tertinggi' => $kueri->orderByDesc('gaji_max')->orderByDesc('id'),
-            'batas_terdekat' => $kueri->orderBy('batas_lamaran')->orderByDesc('id'),
+            'batas_terdekat' => $kueri->orderByRaw('batas_lamaran IS NULL')->orderBy('batas_lamaran')->orderByDesc('id'),
             default => $kueri->latest(),
         };
 
         return $kueri;
+    }
+
+    public function masihMenerimaLamaran(): bool
+    {
+        return $this->aktif && ($this->batas_lamaran === null || $this->batas_lamaran->gte(today()));
+    }
+
+    public function adalahEksternal(): bool
+    {
+        return $this->sumber !== null && $this->sumber !== 'internal';
     }
 
     public function statusLowongan(): string
@@ -100,6 +112,10 @@ class Lowongan extends Model
             return 'Ditutup';
         }
 
-        return $this->batas_lamaran->gte(today()) ? 'Aktif' : 'Kedaluwarsa';
+        if ($this->batas_lamaran === null || $this->batas_lamaran->gte(today())) {
+            return 'Aktif';
+        }
+
+        return 'Kedaluwarsa';
     }
 }

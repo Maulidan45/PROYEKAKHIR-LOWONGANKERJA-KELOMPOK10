@@ -22,6 +22,8 @@ class User extends Authenticatable
 
     public const array JENIS_AKUN = ['admin' => 'Admin', 'perusahaan' => 'Perusahaan', 'user' => 'Pencari kerja'];
 
+    public const array STATUS_VERIFIKASI = ['Menunggu Verifikasi', 'Terverifikasi', 'Ditolak'];
+
     protected function email(): Attribute
     {
         return Attribute::make(set: fn (string $nilai): string => strtolower(trim($nilai)));
@@ -29,7 +31,12 @@ class User extends Authenticatable
 
     protected function casts(): array
     {
-        return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'profil_pendaftaran' => 'array'];
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'profil_pendaftaran' => 'array',
+            'diverifikasi_pada' => 'datetime',
+        ];
     }
 
     public function lowongans(): HasMany
@@ -45,5 +52,45 @@ class User extends Authenticatable
     public function lowonganTersimpan(): BelongsToMany
     {
         return $this->belongsToMany(Lowongan::class, 'simpan_lowongans')->withTimestamps();
+    }
+
+    public function jadwalWawancaraPerusahaan(): HasMany
+    {
+        return $this->hasMany(JadwalWawancara::class, 'perusahaan_id');
+    }
+
+    public function jadwalWawancaraPelamar(): HasMany
+    {
+        return $this->hasMany(JadwalWawancara::class, 'pelamar_id');
+    }
+
+    public function sudahTerverifikasi(): bool
+    {
+        return $this->status_verifikasi === 'Terverifikasi';
+    }
+
+    public function persentaseKelengkapanProfil(): int
+    {
+        if ($this->role !== 'user') {
+            return 100;
+        }
+
+        $profil = $this->profil_pendaftaran ?? [];
+        $bidang = [
+            $this->name,
+            $this->email,
+            $profil['telepon'] ?? null,
+            $profil['tempat_lahir'] ?? null,
+            $profil['tanggal_lahir'] ?? null,
+            $profil['jenis_kelamin'] ?? null,
+            $profil['domisili'] ?? null,
+            $profil['pendidikan_terakhir'] ?? null,
+            $profil['pengalaman_kerja'] ?? null,
+            $profil['keahlian'] ?? null,
+        ];
+
+        $terisi = collect($bidang)->filter(fn (mixed $nilai): bool => is_string($nilai) && trim($nilai) !== '')->count();
+
+        return (int) round(($terisi / count($bidang)) * 100);
     }
 }

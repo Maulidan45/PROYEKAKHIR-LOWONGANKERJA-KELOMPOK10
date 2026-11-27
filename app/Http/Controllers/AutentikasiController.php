@@ -22,6 +22,7 @@ class AutentikasiController extends Controller
         $pengguna = new User;
         $pengguna->fill(Arr::only($data, ['name', 'email', 'password']));
         $pengguna->role = $data['role'];
+        $pengguna->status_verifikasi = $data['role'] === 'perusahaan' ? 'Menunggu Verifikasi' : 'Terverifikasi';
         $pengguna->profil_pendaftaran = Arr::except($data, ['name', 'email', 'password', 'role']);
         try {
             $pengguna->save();

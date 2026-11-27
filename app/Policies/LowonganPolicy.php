@@ -19,7 +19,7 @@ class LowonganPolicy
 
     public function create(User $pengguna): bool
     {
-        return $pengguna->role === 'perusahaan';
+        return $pengguna->role === 'perusahaan' && $pengguna->sudahTerverifikasi();
     }
 
     public function update(User $pengguna, Lowongan $lowongan): bool
@@ -34,6 +34,6 @@ class LowonganPolicy
 
     public function updateStatus(User $pengguna, Lowongan $lowongan): bool
     {
-        return $this->update($pengguna, $lowongan);
+        return $pengguna->role === 'perusahaan' && $lowongan->perusahaan_id === $pengguna->id;
     }
 }

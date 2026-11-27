@@ -21,8 +21,24 @@
                 </nav>
                 <div class="konten-akun">
             <section id="profil-perusahaan" data-panel-akun @if ($bagianAwal !== 'profil-perusahaan') hidden @endif @class(['bagian-pengaturan-akun', 'bagian-pengaturan-validasi' => $bagianValidasi === 'profil-perusahaan'])>
-                <header class="kepala-bagian-akun"><div><h1>Profil perusahaan</h1><p>Informasi ini digunakan pada profil perusahaan Anda.</p></div></header>
-                <form method="POST" action="{{ route('akun.profil.update') }}" class="form-akun form-profil" data-kirim>
+                <header class="kepala-bagian-akun">
+                    <div>
+                        <h1>Profil perusahaan</h1>
+                        <p>Informasi ini digunakan pada profil perusahaan dan verifikasi legalitas Anda.</p>
+                    </div>
+                    <span @class([
+                        'rounded-full px-3 py-1 text-xs font-semibold',
+                        'bg-emerald-50 text-emerald-800' => $pengguna->status_verifikasi === 'Terverifikasi',
+                        'bg-amber-50 text-amber-800' => $pengguna->status_verifikasi === 'Menunggu Verifikasi',
+                        'bg-red-50 text-red-800' => $pengguna->status_verifikasi === 'Ditolak',
+                    ])>{{ $pengguna->status_verifikasi }}</span>
+                </header>
+                @if ($pengguna->catatan_verifikasi)
+                    <div class="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                        <strong>Catatan Admin:</strong> {{ $pengguna->catatan_verifikasi }}
+                    </div>
+                @endif
+                <form method="POST" action="{{ route('akun.profil.update') }}" enctype="multipart/form-data" class="form-akun form-profil" data-kirim>
                     @csrf
                     @method('PATCH')
                     <div class="isian"><label for="name">Nama perusahaan</label><input id="name" name="name" value="{{ old('name', $pengguna->name) }}" maxlength="255" required @error('name') aria-invalid="true" aria-describedby="name-error" @enderror>@error('name')<p id="name-error" class="kesalahan-isian">{{ $message }}</p>@enderror</div>
@@ -35,6 +51,14 @@
                     <div class="isian"><label for="situs_perusahaan">Situs perusahaan (opsional)</label><input id="situs_perusahaan" name="situs_perusahaan" type="url" value="{{ old('situs_perusahaan', $profil['situs_perusahaan'] ?? '') }}" maxlength="255" autocomplete="url" placeholder="https://perusahaan.co.id" @error('situs_perusahaan') aria-invalid="true" aria-describedby="situs_perusahaan-error" @enderror>@error('situs_perusahaan')<p id="situs_perusahaan-error" class="kesalahan-isian">{{ $message }}</p>@enderror</div>
                     <div class="isian"><label for="nama_penanggung_jawab">Nama penanggung jawab</label><input id="nama_penanggung_jawab" name="nama_penanggung_jawab" value="{{ old('nama_penanggung_jawab', $profil['nama_penanggung_jawab'] ?? '') }}" maxlength="255" autocomplete="name" required @error('nama_penanggung_jawab') aria-invalid="true" aria-describedby="nama_penanggung_jawab-error" @enderror>@error('nama_penanggung_jawab')<p id="nama_penanggung_jawab-error" class="kesalahan-isian">{{ $message }}</p>@enderror</div>
                     <div class="isian"><label for="jabatan_penanggung_jawab">Jabatan penanggung jawab</label><input id="jabatan_penanggung_jawab" name="jabatan_penanggung_jawab" value="{{ old('jabatan_penanggung_jawab', $profil['jabatan_penanggung_jawab'] ?? '') }}" maxlength="100" autocomplete="organization-title" required @error('jabatan_penanggung_jawab') aria-invalid="true" aria-describedby="jabatan_penanggung_jawab-error" @enderror>@error('jabatan_penanggung_jawab')<p id="jabatan_penanggung_jawab-error" class="kesalahan-isian">{{ $message }}</p>@enderror</div>
+                    <div class="isian" style="grid-column: 1 / -1;">
+                        <label for="dokumen_legalitas">Dokumen Legalitas Usaha (NIB / SIUP / Akta, PDF/JPG/PNG, maks. 5 MB)</label>
+                        <input id="dokumen_legalitas" name="dokumen_legalitas" type="file" accept=".pdf,.jpg,.jpeg,.png">
+                        @if ($pengguna->dokumen_legalitas_path)
+                            <p class="bantuan-isian">Dokumen tersimpan. <a class="font-semibold text-blue-700 hover:underline" href="{{ route('perusahaan.legalitas', $pengguna) }}">Unduh dokumen saat ini</a></p>
+                        @endif
+                        @error('dokumen_legalitas')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                    </div>
                     <button class="tombol" type="submit" data-teks-proses="Menyimpan…">Simpan profil</button>
                 </form>
             </section>

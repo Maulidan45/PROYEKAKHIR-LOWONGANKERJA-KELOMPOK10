@@ -41,9 +41,11 @@ class LowonganEksternalService
         $tersimpan = 0;
 
         foreach ($daftarPekerjaan as $item) {
-            if (! is_array($item) || empty($item['title']) || empty($item['company_name'])) {
+            if (! is_array($item) || empty($item['id']) || empty($item['title']) || empty($item['company_name'])) {
                 continue;
             }
+
+            $eksternalId = 'remotive-'.(string) $item['id'];
 
             $namaKategori = $this->petakanKategori((string) ($item['category'] ?? 'Teknologi Informasi'));
             $kategori = Kategori::query()->firstOrCreate(
@@ -59,33 +61,38 @@ class LowonganEksternalService
                     'name' => $namaPerusahaan,
                     'password' => Str::random(24),
                     'role' => 'perusahaan',
+                    'status_verifikasi' => 'Terverifikasi',
                     'email_verified_at' => now(),
                 ]
             );
 
-            $judul = Str::limit(trim((string) $item['title']), 150, '');
+            $judul = Str::limit(trim((string) $item['title']), 120, '');
             $lokasi = Str::limit(trim((string) ($item['candidate_required_location'] ?? '')) ?: 'Jarak jauh (Global)', 100, '');
             $tipeKerja = $this->petakanTipeKerja((string) ($item['job_type'] ?? ''));
-            $deskripsiTeks = $this->bersihkanDeskripsi(
-                (string) ($item['description'] ?? ''),
-                (string) ($item['url'] ?? '')
-            );
+            $urlSumber = trim((string) ($item['url'] ?? ''));
+            $deskripsiTeks = $this->bersihkanDeskripsi((string) ($item['description'] ?? ''));
 
-            $perusahaan->lowongans()->firstOrCreate(
-                ['judul' => $judul],
+            $lowongan = Lowongan::query()->updateOrCreate(
+                ['eksternal_id' => $eksternalId],
                 [
+                    'perusahaan_id' => $perusahaan->id,
                     'kategori_id' => $kategori->id,
+                    'judul' => $judul,
                     'lokasi' => $lokasi,
                     'tipe_kerja' => $tipeKerja,
-                    'gaji_min' => 8000000,
-                    'gaji_max' => 15000000,
-                    'batas_lamaran' => now()->addMonth()->toDateString(),
+                    'gaji_min' => null,
+                    'gaji_max' => null,
+                    'batas_lamaran' => null,
                     'deskripsi' => $deskripsiTeks,
                     'aktif' => true,
+                    'sumber' => 'remotive',
+                    'sumber_url' => $urlSumber !== '' ? $urlSumber : null,
                 ]
             );
 
-            $tersimpan++;
+            if ($lowongan->wasRecentlyCreated) {
+                $tersimpan++;
+            }
         }
 
         return $tersimpan;
@@ -116,15 +123,11 @@ class LowonganEksternalService
         };
     }
 
-    private function bersihkanDeskripsi(string $html, string $urlSumber): string
+    private function bersihkanDeskripsi(string $html): string
     {
         $teks = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $teks = preg_replace('/\s+/', ' ', trim($teks)) ?? '';
         $ringkas = Str::limit($teks, 1500, '...');
-
-        if ($urlSumber !== '') {
-            $ringkas .= "\n\nSumber lowongan asli: {$urlSumber}";
-        }
 
         return $ringkas !== '' ? $ringkas : 'Informasi detail tersedia pada tautan sumber lowongan.';
     }

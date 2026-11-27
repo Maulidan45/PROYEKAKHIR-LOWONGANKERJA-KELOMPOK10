@@ -18,34 +18,40 @@ class LowonganController extends Controller
     {
         $this->authorize('viewAny', Lowongan::class);
 
-        $kueri = Lowongan::query()
-            ->select(['id', 'kategori_id', 'perusahaan_id', 'judul', 'lokasi', 'tipe_kerja', 'gaji_min', 'gaji_max', 'batas_lamaran', 'deskripsi', 'aktif', 'created_at'])
-            ->with(['kategori:id,nama', 'perusahaan:id,name'])
-            ->withCount('lamarans')
-            ->latest();
-
-        if ($permintaan->user()->role !== 'perusahaan') {
-            return view('lowongan.index', ['daftarLowongan' => $kueri->paginate(12)->withQueryString()]);
-        }
-
         $permintaan->validate([
             'kata_kunci' => ['nullable', 'string', 'max:100', 'not_regex:/<\s*script\b/i'],
             'status' => ['nullable', 'in:aktif,kedaluwarsa,ditutup'],
         ]);
 
-        $kueri->where('perusahaan_id', $permintaan->user()->id)
-            ->when(trim((string) $permintaan->query('kata_kunci')), function (Builder $kueri, string $cari): void {
-                $kueri->where(
-                    fn (Builder $isian) => $isian->where('judul', 'like', "%{$cari}%")->orWhere('lokasi', 'like', "%{$cari}%")
-                );
-            });
+        $kueri = Lowongan::query()
+            ->select(['id', 'kategori_id', 'perusahaan_id', 'judul', 'lokasi', 'tipe_kerja', 'gaji_min', 'gaji_max', 'batas_lamaran', 'deskripsi', 'aktif', 'sumber', 'sumber_url', 'created_at'])
+            ->with(['kategori:id,nama', 'perusahaan:id,name'])
+            ->withCount('lamarans')
+            ->latest();
+
+        $kueri->when(trim((string) $permintaan->query('kata_kunci')), function (Builder $kueri, string $cari): void {
+            $pola = '%'.mb_strtolower($cari).'%';
+            $kueri->where(
+                fn (Builder $isian) => $isian->whereRaw('lower(judul) like ?', [$pola])
+                    ->orWhereRaw('lower(lokasi) like ?', [$pola])
+                    ->orWhereHas('perusahaan', fn (Builder $p) => $p->whereRaw('lower(name) like ?', [$pola]))
+            );
+        });
 
         match ($permintaan->query('status')) {
             'aktif' => $kueri->terbuka(),
-            'kedaluwarsa' => $kueri->where('aktif', true)->whereDate('batas_lamaran', '<', today()),
+            'kedaluwarsa' => $kueri->where('aktif', true)->whereNotNull('batas_lamaran')->whereDate('batas_lamaran', '<', today()),
             'ditutup' => $kueri->where('aktif', false),
             default => null,
         };
+
+        if ($permintaan->user()->role !== 'perusahaan') {
+            return view('lowongan.index', [
+                'daftarLowongan' => $kueri->paginate(12)->withQueryString(),
+            ]);
+        }
+
+        $kueri->where('perusahaan_id', $permintaan->user()->id);
 
         return view('lowongan.index', [
             'daftarLowongan' => $kueri->paginate(12)->withQueryString(),
@@ -56,13 +62,16 @@ class LowonganController extends Controller
 
     public function show(Request $permintaan, Lowongan $lowongan): View
     {
-        abort_unless($lowongan->aktif && $lowongan->batas_lamaran->gte(today()), 404);
+        $bolehLihatAdminAtauPemilik = $permintaan->user()
+            && ($permintaan->user()->role === 'admin' || $permintaan->user()->id === $lowongan->perusahaan_id);
 
-        $lowongan->load(['kategori:id,nama', 'perusahaan:id,name,profil_pendaftaran']);
+        abort_unless($lowongan->masihMenerimaLamaran() || $bolehLihatAdminAtauPemilik, 404);
 
-        $sudahMelamar = $permintaan->user()?->role === 'user'
-            ? $lowongan->lamarans()->where('pelamar_id', $permintaan->user()->id)->exists()
-            : false;
+        $lowongan->load(['kategori:id,nama', 'perusahaan:id,name,profil_pendaftaran,status_verifikasi']);
+
+        $lamaranPengguna = $permintaan->user()?->role === 'user'
+            ? $lowongan->lamarans()->where('pelamar_id', $permintaan->user()->id)->first()
+            : null;
 
         $sudahDisimpan = $permintaan->user()?->role === 'user'
             ? $permintaan->user()->lowonganTersimpan()->where('lowongan_id', $lowongan->id)->exists()
@@ -78,7 +87,8 @@ class LowonganController extends Controller
 
         return view('lowongan.show', [
             'lowongan' => $lowongan,
-            'sudahMelamar' => $sudahMelamar,
+            'lamaranPengguna' => $lamaranPengguna,
+            'sudahMelamar' => $lamaranPengguna !== null,
             'sudahDisimpan' => $sudahDisimpan,
             'lowonganLainPerusahaan' => $lowonganLainPerusahaan,
         ]);
@@ -132,7 +142,7 @@ class LowonganController extends Controller
         return [
             'total' => (clone $lowonganPerusahaan)->count(),
             'aktif' => (clone $lowonganPerusahaan)->terbuka()->count(),
-            'kedaluwarsa' => (clone $lowonganPerusahaan)->where('aktif', true)->whereDate('batas_lamaran', '<', today())->count(),
+            'kedaluwarsa' => (clone $lowonganPerusahaan)->where('aktif', true)->whereNotNull('batas_lamaran')->whereDate('batas_lamaran', '<', today())->count(),
             'lamaran' => Lamaran::whereHas('lowongan', fn (Builder $kueri) => $kueri->where('perusahaan_id', $perusahaanId))->count(),
         ];
     }

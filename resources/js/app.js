@@ -276,15 +276,21 @@ if (formulirPencarian) {
             ['rect', { x: '3', y: '7', width: '18', height: '13', rx: '2' }],
             ['path', { d: 'M7 7V4h10v3M3 12h18M10 12v3h4v-3' }],
         ]));
-        pGaji.appendChild(document.createTextNode(`Rp ${formatRupiah.format(item.gaji_min)}–${formatRupiah.format(item.gaji_max)}`));
-        const periode = document.createElement('span');
-        periode.className = 'periode-gaji';
-        periode.textContent = '/ bulan';
-        pGaji.appendChild(periode);
+        if (item.gaji_min && item.gaji_max) {
+            pGaji.appendChild(document.createTextNode(`Rp ${formatRupiah.format(item.gaji_min)}–${formatRupiah.format(item.gaji_max)}`));
+            const periode = document.createElement('span');
+            periode.className = 'periode-gaji';
+            periode.textContent = '/ bulan';
+            pGaji.appendChild(periode);
+        } else {
+            pGaji.appendChild(document.createTextNode('Gaji sesuai ketentuan'));
+        }
 
         const batas = document.createElement('span');
         batas.className = 'kode-lowongan';
-        batas.textContent = item.diposting_relatif ?? `Batas ${item.batas_lamaran_format ?? item.batas_lamaran}`;
+        batas.textContent = item.sumber === 'remotive'
+            ? 'Eksternal · Remotive'
+            : (item.diposting_relatif ?? (item.batas_lamaran_format ? `Batas ${item.batas_lamaran_format}` : 'Aktif'));
 
         bagianBawah.append(pGaji, batas);
         artikel.append(identitas, rincian, bagianBawah);

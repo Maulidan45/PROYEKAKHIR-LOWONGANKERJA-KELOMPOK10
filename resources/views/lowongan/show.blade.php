@@ -2,12 +2,16 @@
     @php($profilPt = $lowongan->perusahaan->profil_pendaftaran ?? [])
     <section class="pembungkus detail-lowongan-halaman" aria-labelledby="judul-lowongan">
         <nav class="jejak-halaman" aria-label="Navigasi halaman">
-            <a href="{{ route('home') }}">Beranda</a>
+            <a href="{{ auth()->check() ? route('katalog') : route('home') }}">Beranda</a>
             <span aria-hidden="true">&rsaquo;</span>
-            <a href="{{ route('home', ['kategori' => $lowongan->kategori_id]) }}">{{ $lowongan->kategori->nama }}</a>
+            <a href="{{ route(auth()->check() ? 'katalog' : 'home', ['kategori' => $lowongan->kategori_id]) }}">{{ $lowongan->kategori->nama }}</a>
             <span aria-hidden="true">&rsaquo;</span>
             <span>{{ $lowongan->judul }}</span>
         </nav>
+
+        @if ($errors->any())
+            <div class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800" role="alert">{{ $errors->first() }}</div>
+        @endif
 
         <div class="tata-letak-detail">
             <div class="kolom-utama-detail">
@@ -15,6 +19,13 @@
                     <header class="kepala-detail-lowongan">
                         <div class="baris-atas-detail">
                             <div>
+                                <div class="mb-2 flex flex-wrap items-center gap-2">
+                                    @if ($lowongan->adalahEksternal())
+                                        <span class="rounded-full bg-indigo-50 px-3 py-0.5 text-xs font-semibold text-indigo-700">Lowongan Eksternal · Sumber Remotive</span>
+                                    @else
+                                        <span class="rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-blue-700">Lowongan Internal Lokerku</span>
+                                    @endif
+                                </div>
                                 <h1 id="judul-lowongan">{{ $lowongan->judul }}</h1>
                                 <p class="subjudul-detail-pt">
                                     <a href="#profil-perusahaan">{{ $lowongan->perusahaan->name }}</a>
@@ -31,12 +42,20 @@
                                                 {{ $sudahDisimpan ? 'Tersimpan' : 'Simpan' }}
                                             </button>
                                         </form>
-                                        @unless ($sudahMelamar)
-                                            <a class="tombol tombol-utama" href="#form-lamar">Lamar Sekarang</a>
-                                        @endunless
+                                        @if ($lowongan->adalahEksternal() && $lowongan->sumber_url)
+                                            <a class="tombol tombol-utama" href="{{ $lowongan->sumber_url }}" target="_blank" rel="noopener noreferrer">Lamar di Situs Sumber</a>
+                                        @elseif ($sudahMelamar && $lamaranPengguna)
+                                            <a class="tombol tombol-sekunder" href="{{ route('lamaran.show', $lamaranPengguna) }}">Lihat Status Lamaran</a>
+                                        @elseif ($lowongan->masihMenerimaLamaran())
+                                            <a class="tombol tombol-utama" href="{{ route('lamaran.create', $lowongan) }}">Lamar Sekarang</a>
+                                        @endif
                                     @endif
                                 @else
-                                    <a class="tombol tombol-utama" href="{{ route('login') }}">Lamar Sekarang</a>
+                                    @if ($lowongan->adalahEksternal() && $lowongan->sumber_url)
+                                        <a class="tombol tombol-utama" href="{{ $lowongan->sumber_url }}" target="_blank" rel="noopener noreferrer">Lamar di Situs Sumber</a>
+                                    @else
+                                        <a class="tombol tombol-utama" href="{{ route('login') }}">Lamar Sekarang</a>
+                                    @endif
                                 @endauth
                             </div>
                         </div>
@@ -67,14 +86,20 @@
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M7 7V4h10v3M3 12h18M10 12v3h4v-3"/></svg>
                                 <div>
                                     <span class="label-detail">Estimasi Gaji</span>
-                                    <strong class="nilai-detail">Rp {{ number_format($lowongan->gaji_min, 0, ',', '.') }} – {{ number_format($lowongan->gaji_max, 0, ',', '.') }} / bulan</strong>
+                                    <strong class="nilai-detail">
+                                        @if ($lowongan->gaji_min && $lowongan->gaji_max)
+                                            Rp {{ number_format($lowongan->gaji_min, 0, ',', '.') }} – {{ number_format($lowongan->gaji_max, 0, ',', '.') }} / bulan
+                                        @else
+                                            Tidak dicantumkan oleh sumber
+                                        @endif
+                                    </strong>
                                 </div>
                             </div>
                             <div class="item-meta-detail">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
                                 <div>
                                     <span class="label-detail">Batas Lamaran</span>
-                                    <strong class="nilai-detail">{{ $lowongan->batas_lamaran->format('d M Y') }}</strong>
+                                    <strong class="nilai-detail">{{ $lowongan->batas_lamaran?->format('d M Y') ?? 'Mengikuti situs sumber' }}</strong>
                                 </div>
                             </div>
                             <div class="item-meta-detail">
@@ -92,32 +117,46 @@
                         <p>{!! nl2br(e($lowongan->deskripsi)) !!}</p>
                     </div>
 
-                    <footer class="aksi-detail-lowongan" id="form-lamar">
-                        @auth
-                            @if (auth()->user()->role === 'user')
-                                @if ($sudahMelamar)
-                                    <p class="status-sudah-lamar">Anda sudah melamar posisi ini.</p>
-                                @else
-                                    <h2>Kirim Lamaran</h2>
-                                    <form class="form-lamar-detail" method="POST" action="{{ route('lamaran.store', $lowongan) }}" enctype="multipart/form-data" data-kirim>
-                                        @csrf
-                                        <div class="bidang-formulir">
-                                            <label for="cv-lamaran">Unggah CV (PDF, opsional, maks. 2 MB)</label>
-                                            <input id="cv-lamaran" type="file" name="cv" accept="application/pdf,.pdf">
-                                            @error('cv')<p class="pesan-galat">{{ $message }}</p>@enderror
-                                        </div>
-                                        <div class="bidang-formulir">
-                                            <label for="catatan-lamaran">Catatan singkat untuk perusahaan (opsional)</label>
-                                            <textarea id="catatan-lamaran" name="catatan" rows="3" placeholder="Ceritakan singkat pengalaman atau kesiapan Anda...">{{ old('catatan') }}</textarea>
-                                            @error('catatan')<p class="pesan-galat">{{ $message }}</p>@enderror
-                                        </div>
-                                        <button class="tombol tombol-utama" type="submit" data-teks-proses="Mengirim lamaran...">Lamar Sekarang</button>
-                                    </form>
-                                @endif
-                            @endif
+                    <footer class="aksi-detail-lowongan">
+                        @if ($lowongan->adalahEksternal() && $lowongan->sumber_url)
+                            <div class="rounded-xl border border-indigo-200 bg-indigo-50/70 p-5">
+                                <h2 class="text-base font-bold text-indigo-950">Lowongan Eksternal (Remotive)</h2>
+                                <p class="mt-1 text-sm text-indigo-800">Proses pengajuan lamaran untuk posisi ini dilakukan langsung pada situs sumber asli.</p>
+                                <a class="tombol-utama mt-4" href="{{ $lowongan->sumber_url }}" target="_blank" rel="noopener noreferrer">Lamar di Situs Sumber</a>
+                            </div>
+                        @elseif (! $lowongan->masihMenerimaLamaran())
+                            <p class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-600">Lowongan ini sudah {{ mb_strtolower($lowongan->statusLowongan()) }} dan tidak menerima lamaran baru.</p>
                         @else
-                            <a class="tombol tombol-utama" href="{{ route('login') }}">Masuk untuk melamar</a>
-                        @endauth
+                            @auth
+                                @if (auth()->user()->role === 'user')
+                                    @if ($sudahMelamar && $lamaranPengguna)
+                                        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                                            <div>
+                                                <p class="text-sm font-semibold text-emerald-900">Anda sudah melamar posisi ini.</p>
+                                                <p class="text-xs text-emerald-700">Status saat ini: {{ $lamaranPengguna->status }}</p>
+                                            </div>
+                                            <a class="tombol-utama" href="{{ route('lamaran.show', $lamaranPengguna) }}">Lihat Detail &amp; Tracking</a>
+                                        </div>
+                                    @else
+                                        <div class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50/70 p-5">
+                                            <div>
+                                                <h2 class="text-base font-bold text-slate-900">Tertarik dengan posisi ini?</h2>
+                                                <p class="mt-1 text-sm text-slate-600">Lengkapi formulir lamaran, unggah CV, surat lamaran, dan ijazah pada halaman pengajuan.</p>
+                                            </div>
+                                            <a class="tombol-utama shrink-0" href="{{ route('lamaran.create', $lowongan) }}">Lamar Sekarang</a>
+                                        </div>
+                                    @endif
+                                @endif
+                            @else
+                                <div class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50/70 p-5">
+                                    <div>
+                                        <h2 class="text-base font-bold text-slate-900">Siap melamar posisi ini?</h2>
+                                        <p class="mt-1 text-sm text-slate-600">Masuk terlebih dahulu dengan akun pencari kerja untuk mengisi formulir lamaran.</p>
+                                    </div>
+                                    <a class="tombol-utama shrink-0" href="{{ route('login') }}">Masuk untuk Melamar</a>
+                                </div>
+                            @endauth
+                        @endif
                     </footer>
                 </article>
             </div>
@@ -128,7 +167,7 @@
                         <span class="inisial-perusahaan inisial-pt-besar" aria-hidden="true">{{ mb_strtoupper(mb_substr(str_replace('PT ', '', $lowongan->perusahaan->name), 0, 1)) }}</span>
                         <div>
                             <h2>{{ $lowongan->perusahaan->name }}</h2>
-                            <p class="status-pt-aktif">Perusahaan Terdaftar</p>
+                            <p class="status-pt-aktif">{{ $lowongan->perusahaan->sudahTerverifikasi() ? 'Perusahaan Terverifikasi' : 'Perusahaan Terdaftar' }}</p>
                         </div>
                     </div>
 
