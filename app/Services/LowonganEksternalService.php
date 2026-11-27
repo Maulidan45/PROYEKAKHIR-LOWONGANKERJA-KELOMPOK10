@@ -41,11 +41,14 @@ class LowonganEksternalService
         $tersimpan = 0;
 
         foreach ($daftarPekerjaan as $item) {
-            if (! is_array($item) || empty($item['id']) || empty($item['title']) || empty($item['company_name'])) {
+            if (! is_array($item) || empty($item['title']) || empty($item['company_name'])) {
                 continue;
             }
 
-            $eksternalId = 'remotive-'.(string) $item['id'];
+            $idSumber = ! empty($item['id'])
+                ? (string) $item['id']
+                : md5((string) ($item['url'] ?? $item['title'].'|'.$item['company_name']));
+            $eksternalId = 'remotive-'.$idSumber;
 
             $namaKategori = $this->petakanKategori((string) ($item['category'] ?? 'Teknologi Informasi'));
             $kategori = Kategori::query()->firstOrCreate(
@@ -72,10 +75,9 @@ class LowonganEksternalService
             $urlSumber = trim((string) ($item['url'] ?? ''));
             $deskripsiTeks = $this->bersihkanDeskripsi((string) ($item['description'] ?? ''));
 
-            $lowongan = Lowongan::query()->updateOrCreate(
+            $lowongan = $perusahaan->lowongans()->updateOrCreate(
                 ['eksternal_id' => $eksternalId],
                 [
-                    'perusahaan_id' => $perusahaan->id,
                     'kategori_id' => $kategori->id,
                     'judul' => $judul,
                     'lokasi' => $lokasi,

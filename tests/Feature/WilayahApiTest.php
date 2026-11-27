@@ -80,7 +80,7 @@ class WilayahApiTest extends TestCase
         ]);
         $jakarta = Lowongan::factory()->create([
             'kategori_id' => $kategori->id,
-            'judul' => 'Staf Admin',
+            'judul' => 'Analis Logistik Jakarta',
             'lokasi' => 'Kota Jakarta Selatan',
         ]);
 

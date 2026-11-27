@@ -27,7 +27,7 @@ class AkunTest extends TestCase
         $tanggapan->assertOk()
             ->assertSee('action="'.route('logout').'"', false)
             ->assertSee(route('akun.edit'), false)->assertSee('>Dashboard</span>', false)
-            ->assertSee('>Akun</span>', false)->assertDontSee('>Email</span>', false)
+            ->assertSee('>Profil Perusahaan</span>', false)->assertDontSee('>Email</span>', false)
             ->assertDontSee('Pengaturan perusahaan')
             ->assertDontSee('Kelola profil, email, dan keamanan akun perusahaan Anda.')
             ->assertDontSee('Kembali ke dasbor')
@@ -123,14 +123,12 @@ class AkunTest extends TestCase
 
         $this->actingAs($pengguna)->get(route('akun.edit'))
             ->assertOk()
-            ->assertSee('Akun saya')
+            ->assertSee('Profil Pencari Kerja')
             ->assertSee($pengguna->name)
             ->assertSee($pengguna->email)
             ->assertSee('action="'.route('akun.profil.update').'"', false)
             ->assertSee('action="'.route('akun.email.update').'"', false)
-            ->assertSee('action="'.route('akun.kata_sandi.update').'"', false)
-            ->assertDontSee('Pencari kerja')
-            ->assertDontSee('Informasi akun pencari kerja Anda.');
+            ->assertSee('action="'.route('akun.kata_sandi.update').'"', false);
 
         $this->patch(route('akun.email.update'), [])->assertSessionHasErrors(['email', 'current_password_email']);
         $this->patch(route('akun.profil.update'), [])->assertSessionHasErrors(['name']);
@@ -141,7 +139,7 @@ class AkunTest extends TestCase
         $pengguna = User::factory()->create(['role' => 'user', 'email' => 'lama@example.com']);
 
         $this->actingAs($pengguna)->patch(route('akun.profil.update'), ['name' => 'Nama Baru'])
-            ->assertRedirect(route('akun.edit'))->assertSessionHas('status', 'Nama berhasil diperbarui.');
+            ->assertRedirect(route('akun.edit'))->assertSessionHas('status', 'Profil pribadi berhasil diperbarui.');
         $this->assertDatabaseHas('users', ['id' => $pengguna->id, 'name' => 'Nama Baru']);
 
         $this->patch(route('akun.email.update'), ['email' => 'baru@example.com', 'current_password_email' => 'password'])

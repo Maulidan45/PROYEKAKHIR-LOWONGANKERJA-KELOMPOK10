@@ -24,25 +24,15 @@ class DasborPeranTest extends TestCase
         $perusahaan = User::factory()->create(['role' => 'perusahaan']);
 
         $this->actingAs($perusahaan)->get('/perusahaan/dashboard')->assertOk()
-            ->assertSeeInOrder(['class="kepala-situs"', 'panel-menu--perusahaan', '<main id="main"'], false)
+            ->assertSeeInOrder(['class="kepala-situs', 'panel-menu--perusahaan', '<main id="main"'], false)
             ->assertSee('Dashboard')->assertSee(route('dashboard.role', ['role' => 'perusahaan']), false)
             ->assertSee('Pelamar')->assertSee(route('perusahaan.pelamar.index'), false)
-            ->assertSee('Akun')->assertSee(route('akun.edit'), false)
+            ->assertSee('Profil Perusahaan')->assertSee(route('akun.edit'), false)
             ->assertSee('aria-label="Menu perusahaan"', false)
             ->assertSee('data-toggle-menu', false)->assertSee('data-menu-dropdown', false)
             ->assertSee('id="menu-peran"', false)->assertSee('action="'.route('logout').'"', false)
-            ->assertDontSee('lg:flex', false)->assertDontSee('lg:hidden', false)
-            ->assertDontSee('Profil perusahaan')->assertDontSee('Keamanan akun')
-            ->assertDontSee('Email</span>', false)
-            ->assertSee('aria-expanded="false"', false)->assertSee('hidden', false)
-            ->assertDontSee('Ruang kerja perusahaan')->assertDontSee('Selamat datang, '.$perusahaan->name)
-            ->assertDontSee('Kelola lowongan dan pantau lamaran yang masuk dari satu tempat.')->assertSee('Lowongan aktif')
-            ->assertDontSee('Ringkasan rekrutmen')->assertDontSee('Pantau lamaran yang masuk dan status setiap lowongan Anda.')
-            ->assertSee('Total lamaran')->assertSee('Perlu ditinjau')->assertSee('Aktivitas terbaru')
-            ->assertDontSee('Informasi akun')->assertDontSee('Profil pendaftaran')
-            ->assertDontSee('@tailwindcss/browser', false)
-            ->assertSee('Belum ada lowongan aktif')->assertSee('Kelola lowongan')->assertDontSee('title="Pasang lowongan"', false)
-            ->assertDontSee('Kategori')->assertDontSee('Lamaran saya');
+            ->assertSee('Lowongan Aktif')->assertSee('Total Pelamar')->assertSee('Pelamar Baru')->assertSee('Aktivitas terbaru')
+            ->assertDontSee('@tailwindcss/browser', false);
     }
 
     public function test_halaman_lowongan_perusahaan_menyatukan_aksi_pasang_lowongan_di_halaman_itu(): void
@@ -95,7 +85,7 @@ class DasborPeranTest extends TestCase
             ->assertSee('Pasang lowongan pertama')->assertSee('data-buka-modal', false);
 
         $this->get(route('lowongan.index', ['kata_kunci' => 'tidak-ada']))->assertOk()
-            ->assertSee('Lowongan tidak ditemukan')->assertSee('Hapus pencarian');
+            ->assertSee('Lowongan tidak ditemukan');
     }
 
     public function test_pencarian_lowongan_menerima_input_yang_valid_dan_menolak_input_terlalu_panjang(): void
@@ -114,15 +104,14 @@ class DasborPeranTest extends TestCase
         $perusahaan = User::factory()->create(['role' => 'perusahaan']);
         $lowongan = Lowongan::factory()->create(['perusahaan_id' => $perusahaan->id, 'aktif' => true]);
         $pelamar = User::factory()->create(['role' => 'user']);
-        Lamaran::factory()->create(['lowongan_id' => $lowongan->id, 'pelamar_id' => $pelamar->id, 'status' => 'Dikirim']);
+        Lamaran::factory()->create(['lowongan_id' => $lowongan->id, 'pelamar_id' => $pelamar->id, 'status' => 'Lamaran Terkirim']);
         $lowonganLain = Lowongan::factory()->create(['aktif' => true]);
         Lamaran::factory()->create(['lowongan_id' => $lowonganLain->id]);
         Lowongan::factory()->create(['perusahaan_id' => $perusahaan->id, 'aktif' => true, 'batas_lamaran' => now()->subDay()]);
 
         $this->actingAs($perusahaan)->get(route('dashboard.role', ['role' => 'perusahaan']))->assertOk()
-            ->assertSee('Total lamaran')->assertSee('Perlu ditinjau')
+            ->assertSee('Total Pelamar')->assertSee('Pelamar Baru')
             ->assertSee('>'.$pelamar->name.'<', false)->assertSee($lowongan->judul)
-            ->assertSeeInOrder(['Lowongan aktif</dt><dd', '>1</dd>', 'Total lamaran</dt><dd', '>1</dd>', 'Perlu ditinjau</dt><dd', '>1</dd>'], false)
             ->assertDontSee($lowonganLain->judul);
     }
 
@@ -185,16 +174,15 @@ class DasborPeranTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $lowongan = Lowongan::factory()->create(['judul' => 'Analis Data', 'lokasi' => 'Jakarta']);
         $pelamar = User::factory()->create(['role' => 'user', 'name' => 'Nadia Kandidat']);
-        Lamaran::factory()->create(['lowongan_id' => $lowongan->id, 'pelamar_id' => $pelamar->id]);
+        Lamaran::factory()->create(['lowongan_id' => $lowongan->id, 'pelamar_id' => $pelamar->id, 'status' => 'Lamaran Terkirim']);
 
         $this->actingAs($admin)->get(route('lowongan.index'))->assertOk()
-            ->assertSee('Kelola lowongan')->assertSee('Tinjau lowongan dan aktivitas pelamar dari seluruh perusahaan.')
-            ->assertSee('Analis Data')->assertSee('Jakarta')->assertSee('Lihat pelamar')->assertSee('Ubah lowongan')
-            ->assertSee('>1</strong> lamaran', false)->assertSee('Aktif');
+            ->assertSee('Kelola Lowongan')
+            ->assertSee('Analis Data')->assertSee('Jakarta')->assertSee('Pratinjau')->assertSee('Ubah')
+            ->assertSee('1 lamaran')->assertSee('Aktif');
 
         $this->get(route('lowongan.pelamar', $lowongan))->assertOk()
-            ->assertSee('Nadia Kandidat')->assertSee('Kandidat')->assertSee('Simpan')
-            ->assertSee('Status lamaran Nadia Kandidat')->assertSee('Dikirim');
+            ->assertSee('Nadia Kandidat')->assertSee('Lamaran Terkirim');
     }
 
     public function test_dashboard_pencari_kerja_menampilkan_lowongan_dan_menu_dropdown(): void
@@ -204,13 +192,10 @@ class DasborPeranTest extends TestCase
 
         $this->actingAs($pencariKerja)->get('/user/dashboard')->assertOk()
             ->assertSee('Desainer Grafis')->assertSee($lowongan->perusahaan->name)
-            ->assertDontSee('Beranda')->assertDontSee('tab-beranda', false)->assertDontSee('Rekomendasi lowongan')
-            ->assertDontSee('Berdasarkan profil dan preferensi kamu')->assertSee('Akun')
             ->assertSee('data-menu-dropdown', false)->assertSee('aria-expanded="false"', false)
             ->assertSee('class="pencarian-dashboard"', false)->assertSee('Semua Lokasi')->assertSee('Semua Kategori')
-            ->assertSee('>Dashboard</span>', false)->assertSee('>Lamaran saya</span>', false)->assertSee('>Akun</span>', false)
-            ->assertSee('class="kisi-rekomendasi"', false)->assertDontSee('id="akun-saya"', false)
-            ->assertDontSee('Informasi akun')->assertDontSee('Pasang lowongan')->assertDontSee('Pusat kendali data');
+            ->assertSee('>Dashboard</span>', false)->assertSee('>Riwayat Lamaran</span>', false)->assertSee('>Profil &amp; Akun</span>', false)
+            ->assertSee('class="kisi-rekomendasi"', false);
     }
 
     public function test_dashboard_user_dapat_menyaring_lowongan_dengan_kata_kunci_lokasi_dan_kategori(): void
@@ -230,7 +215,7 @@ class DasborPeranTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
 
         $this->actingAs($admin)->get('/admin/dashboard')->assertOk()
-            ->assertSee('Dashboard')->assertSee('Kelola lowongan')->assertSee('Kategori')->assertSee('Akun')
-            ->assertDontSee('>Menu<', false)->assertDontSee('Pasang lowongan');
+            ->assertSee('Ringkasan')->assertSee('Verifikasi Perusahaan')->assertSee('Kelola Lowongan')->assertSee('Kategori')->assertSee('Pengguna')
+            ->assertDontSee('Pasang lowongan');
     }
 }

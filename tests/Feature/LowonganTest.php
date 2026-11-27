@@ -29,6 +29,7 @@ class LowonganTest extends TestCase
         $lowongan = Lowongan::sole();
         $this->assertSame($perusahaan->id, $lowongan->perusahaan_id);
         $this->assertTrue($lowongan->aktif);
+        $this->post(route('logout'));
         $this->get('/')->assertOk()->assertSee('Backend Laravel Developer')->assertSee('PT Vora Media Group');
     }
 
