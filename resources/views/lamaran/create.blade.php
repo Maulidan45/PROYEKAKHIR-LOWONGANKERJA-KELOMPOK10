@@ -1,5 +1,5 @@
-<x-layout :judul="'Lamar ' . $lowongan->judul . ' | Lokerku'">
-    <div class="mx-auto w-[min(64rem,calc(100%-2rem))] py-8 sm:py-12">
+<x-panel-user :judul="'Lamar ' . $lowongan->judul" aktif="katalog">
+    <div>
         <nav class="mb-5 flex flex-wrap items-center gap-2 text-sm text-slate-500" aria-label="Navigasi halaman">
             <a class="font-medium text-blue-700 hover:underline" href="{{ route('lowongan.show', $lowongan) }}">&larr; Kembali ke detail lowongan</a>
         </nav>
@@ -263,4 +263,4 @@
             });
         });
     </script>
-</x-layout>
+</x-panel-user>

@@ -1,4 +1,17 @@
-<x-layout judul="Notifikasi | Lokerku">
+@php($komponenPanel = auth()->user()->role === 'perusahaan' ? 'panel-perusahaan' : (auth()->user()->role === 'user' ? 'panel-user' : 'layout'))
+@php($pakaiPanelModern = $komponenPanel !== 'layout')
+<x-dynamic-component :component="$komponenPanel" :judul="$pakaiPanelModern ? 'Notifikasi' : 'Notifikasi | Lokerku'" aktif="notifikasi">
+@if ($pakaiPanelModern)
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-xs font-medium text-slate-500">{{ $jumlahBelumDibaca }} notifikasi belum dibaca.</p>
+        @if ($jumlahBelumDibaca > 0)
+            <form method="POST" action="{{ route('notifikasi.baca') }}" data-kirim>
+                @csrf
+                <button class="rounded-full bg-[#007AFF] px-5 py-2 text-xs font-bold text-white shadow-sm shadow-[#007AFF]/25 transition hover:bg-[#0062CC]" type="submit" data-teks-proses="Memproses…">Tandai Semua Dibaca</button>
+            </form>
+        @endif
+    </div>
+@else
     <div class="mx-auto w-[min(60rem,calc(100%-2rem))] py-8 sm:py-12">
         <header class="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-6">
             <div>
@@ -13,8 +26,9 @@
                 </form>
             @endif
         </header>
+@endif
 
-        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
+        <div class="overflow-hidden rounded-3xl border-[1.5px] border-slate-200/90 bg-white/85 shadow-[0_10px_30px_-10px_rgba(15,23,42,0.08)] backdrop-blur-xl">
             <ul class="divide-y divide-slate-100">
                 @forelse ($daftarNotifikasi as $notifikasi)
                     <li @class(['flex flex-wrap items-center justify-between gap-4 p-5 transition', 'bg-blue-50/40' => $notifikasi->read_at === null])>
@@ -42,5 +56,7 @@
             </ul>
             <div class="border-t border-slate-100 px-5 py-3">{{ $daftarNotifikasi->links() }}</div>
         </div>
+@unless ($pakaiPanelModern)
     </div>
-</x-layout>
+@endunless
+</x-dynamic-component>

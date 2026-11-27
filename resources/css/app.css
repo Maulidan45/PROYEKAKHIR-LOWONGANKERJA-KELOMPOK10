@@ -3,14 +3,14 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 :root {
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color: #18283e;
-    background: #fff;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    color: #0f172a;
+    background: #f8fafc;
     font-synthesis: none;
-    --biru: #1d4ed8;
-    --redup: #526175;
-    --garis: #dce3ec;
-    --pucat: #f3f6fb;
+    --biru: #007AFF;
+    --redup: #475569;
+    --garis: #e2e8f0;
+    --pucat: #f8fafc;
 }
 
 * { box-sizing: border-box; }
@@ -21,18 +21,19 @@ h1, h2, h3 { line-height: 1.2; font-weight: 700; overflow-wrap: anywhere; }
 h1 { font-size: clamp(2rem, 4.8vw, 3.8rem); letter-spacing: -.045em; }
 h2 { font-size: 1.35rem; letter-spacing: -.025em; }
 h3 { font-size: 1.15rem; }
-a { color: var(--biru); text-decoration: none; }
+@layer base {
+    a { color: var(--biru); text-decoration: none; }
+    input:not([type='radio']):not([type='checkbox']), select, textarea {
+        width: 100%; min-height: 48px; padding: 10px 12px;
+        border: 1px solid #8795a8; border-radius: 4px; background: #fff; color: #18283e;
+    }
+}
 a[href], button, summary, select, label[for], label:has(input[type='radio']), input[type='radio'] { cursor: pointer; }
 button:disabled, select:disabled { cursor: not-allowed; }
 a:active, button:active { transform: translateY(1px); }
 button, input, select, textarea { font: inherit; }
-button, select, input[type='radio'] { cursor: pointer; }
 :focus-visible { outline: 3px solid var(--biru); outline-offset: 4px; }
 input, select, textarea { min-width: 0; max-width: 100%; }
-input:not([type='radio']):not([type='checkbox']), select, textarea {
-    width: 100%; min-height: 48px; padding: 10px 12px;
-    border: 1px solid #8795a8; border-radius: 4px; background: #fff; color: #18283e;
-}
 input::placeholder { color: #5c697a; opacity: 1; }
 input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='true'] { border-color: #b42318; }
 textarea { resize: vertical; }
@@ -607,12 +608,12 @@ input[type='password']::-ms-reveal, input[type='password']::-ms-clear, input[typ
 .tombol-bahaya { border: 0; background: transparent; color: #b42318; transition: background-color 120ms; }
 .tombol-bahaya:hover { background: #fef3f2; }
 .tombol-bahaya:disabled { color: #93a3b8; cursor: wait; background: transparent; }
-.tombol-utama, .tombol-kedua { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 20px; border-radius: 8px; font-size: .925rem; font-weight: 600; text-decoration: none; transition: background-color 120ms, border-color 120ms; }
-.tombol-utama { border: 1px solid #1d4ed8; background: #1d4ed8; color: #fff; }
-.tombol-utama:hover { background: #173da8; border-color: #173da8; text-decoration: none; }
-.tombol-utama:disabled { cursor: wait; background: #455b8e; border-color: #455b8e; color: #fff; }
-.tombol-kedua { border: 1px solid #dce3ec; background: #fff; color: #334155; }
-.tombol-kedua:hover { background: #f1f5f9; border-color: #b8c5d5; }
+.tombol-utama, .tombol-kedua { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 22px; border-radius: 9999px; font-size: .925rem; font-weight: 600; text-decoration: none; transition: background-color 150ms, border-color 150ms, box-shadow 150ms; }
+.tombol-utama { border: 1px solid #007AFF; background: #007AFF; color: #fff; box-shadow: 0 4px 14px rgba(0, 122, 255, .22); }
+.tombol-utama:hover { background: #0062CC; border-color: #0062CC; text-decoration: none; }
+.tombol-utama:disabled { cursor: wait; background: #7ab8ff; border-color: #7ab8ff; color: #fff; }
+.tombol-kedua { border: 1px solid rgba(255, 255, 255, .85); background: rgba(255, 255, 255, .78); color: #334155; backdrop-filter: blur(12px); }
+.tombol-kedua:hover { background: #E0F2FE; border-color: rgba(0, 122, 255, .3); color: #007AFF; }
 .dialog-lowongan::backdrop { background: rgb(15 23 42 / .5); }
 .dialog-lowongan[open] { animation: muncul-modal 160ms ease-out; }
 @keyframes muncul-modal { from { opacity: 0; transform: translateY(8px) scale(.98); } }

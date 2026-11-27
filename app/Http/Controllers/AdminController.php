@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kategori;
+use App\Models\Lowongan;
 use App\Models\User;
 use App\Notifications\VerifikasiPerusahaanNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -52,6 +55,7 @@ class AdminController extends Controller
         $perusahaan->catatan_verifikasi = $valid['catatan_verifikasi'] ?? null;
         $perusahaan->diverifikasi_pada = $valid['status_verifikasi'] === 'Terverifikasi' ? now() : null;
         $perusahaan->save();
+        Cache::forget('admin:menunggu_verifikasi_count');
 
         $perusahaan->notify(new VerifikasiPerusahaanNotification($perusahaan));
 
@@ -104,6 +108,38 @@ class AdminController extends Controller
             'peranAktif' => $peranFilter,
             'cari' => $cari,
             'jenisAkunTersedia' => User::JENIS_AKUN,
+        ]);
+    }
+
+    public function katalogIndex(Request $permintaan): View
+    {
+        abort_unless($permintaan->user()->role === 'admin', 403);
+
+        $cari = trim((string) $permintaan->query('kata_kunci', ''));
+        $kategoriId = (string) $permintaan->query('kategori', '');
+
+        $kueri = Lowongan::terbuka()
+            ->with(['kategori:id,nama', 'perusahaan:id,name'])
+            ->latest();
+
+        if ($cari !== '') {
+            $pola = '%'.mb_strtolower($cari).'%';
+            $kueri->where(function ($q) use ($pola): void {
+                $q->whereRaw('lower(judul) like ?', [$pola])
+                    ->orWhereRaw('lower(lokasi) like ?', [$pola])
+                    ->orWhereHas('perusahaan', fn ($pq) => $pq->whereRaw('lower(name) like ?', [$pola]));
+            });
+        }
+
+        if ($kategoriId !== '') {
+            $kueri->where('kategori_id', $kategoriId);
+        }
+
+        return view('admin.katalog', [
+            'daftarLowongan' => $kueri->paginate(9)->withQueryString(),
+            'daftarKategori' => Kategori::orderBy('nama')->get(['id', 'nama']),
+            'cari' => $cari,
+            'kategoriAktif' => $kategoriId,
         ]);
     }
 }

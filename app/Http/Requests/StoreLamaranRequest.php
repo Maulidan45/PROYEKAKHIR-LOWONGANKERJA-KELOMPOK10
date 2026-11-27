@@ -17,6 +17,11 @@ class StoreLamaranRequest extends FormRequest
      */
     public function rules(): array
     {
+        $profil = $this->user()?->profil_pendaftaran ?? [];
+        $punyaCvProfil = ! empty($profil['cv_default_path']);
+        $punyaSuratProfil = ! empty($profil['surat_lamaran_default_path']);
+        $punyaIjazahProfil = ! empty($profil['ijazah_default_path']);
+
         return [
             'nama_lengkap' => ['required', 'string', 'max:255', 'not_regex:/\x00/'],
             'email' => ['required', 'string', 'email', 'max:255'],
@@ -29,9 +34,9 @@ class StoreLamaranRequest extends FormRequest
             'pengalaman_kerja' => ['required', 'string', 'max:2000', 'not_regex:/\x00/'],
             'keahlian' => ['required', 'string', 'max:1000', 'not_regex:/\x00/'],
             'catatan' => ['nullable', 'string', 'max:1500', 'not_regex:/\x00/'],
-            'cv' => ['required', 'file', 'mimes:pdf', 'max:5120'],
-            'surat_lamaran' => ['required', 'file', 'mimes:pdf', 'max:5120'],
-            'ijazah' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'cv' => [$punyaCvProfil ? 'nullable' : 'required', 'file', 'mimes:pdf', 'max:5120'],
+            'surat_lamaran' => [$punyaSuratProfil ? 'nullable' : 'required', 'file', 'mimes:pdf', 'max:5120'],
+            'ijazah' => [$punyaIjazahProfil ? 'nullable' : 'required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'portofolio' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'sertifikat' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ];

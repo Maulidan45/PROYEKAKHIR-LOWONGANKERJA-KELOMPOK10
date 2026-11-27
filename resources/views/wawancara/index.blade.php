@@ -1,9 +1,7 @@
-<x-layout judul="Jadwal Wawancara | Lokerku">
-    <div class="mx-auto w-[min(72rem,calc(100%-2rem))] py-8 sm:w-[min(72rem,calc(100%-3rem))] sm:py-12">
-        <section class="mx-auto max-w-5xl">
-            <x-kepala-halaman label="Rekrutmen" judul="Jadwal Wawancara" :deskripsi="$adalahPerusahaan ? 'Kelola jadwal wawancara bersama kandidat terpilih.' : 'Pantau jadwal wawancara Anda bersama perusahaan.'">
-                <a class="tombol-kedua" href="{{ route('dashboard') }}">Kembali ke Dashboard</a>
-            </x-kepala-halaman>
+<x-dynamic-component :component="$adalahPerusahaan ? 'panel-perusahaan' : 'panel-user'" judul="Jadwal Wawancara" aktif="wawancara">
+    <div class="flex justify-end">
+        <a class="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-[#E0F2FE] hover:text-[#007AFF]" href="{{ route('dashboard') }}">Kembali ke Dashboard</a>
+    </div>
 
             @if ($errors->any())
                 <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900" role="alert">{{ $errors->first() }}</div>
@@ -86,7 +84,5 @@
                 @endforelse
             </div>
 
-            <div class="mt-6">{{ $daftarJadwal->links() }}</div>
-        </section>
-    </div>
-</x-layout>
+            <div>{{ $daftarJadwal->links() }}</div>
+</x-dynamic-component>

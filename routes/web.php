@@ -26,8 +26,18 @@ Route::get('/', function (Request $permintaan, WilayahService $wilayah): View|Re
     return view('welcome', AutentikasiController::dataKatalog($permintaan, $wilayah));
 })->name('home');
 
-Route::middleware('auth')->get('/beranda', function (Request $permintaan, WilayahService $wilayah): View {
-    return view('welcome', AutentikasiController::dataKatalog($permintaan, $wilayah));
+Route::middleware('auth')->get('/beranda', function (Request $permintaan, DasborController $dasbor, App\Services\JobMatchingService $pencocokan): View|RedirectResponse {
+    $pengguna = $permintaan->user();
+
+    if ($pengguna->role === 'admin') {
+        return redirect()->route('admin.katalog.index', $permintaan->query());
+    }
+
+    if ($pengguna->role === 'perusahaan') {
+        return redirect()->route('dashboard.role', ['role' => 'perusahaan']);
+    }
+
+    return $dasbor->tampil($permintaan, 'user', $pencocokan);
 })->name('katalog');
 
 Route::middleware('guest')->group(function (): void {
@@ -54,6 +64,32 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/lowongan/{lowongan}/simpan', [SimpanLowonganController::class, 'toggle'])->name('lowongan.simpan');
 
     Route::get('/perusahaan/pelamar', [LamaranController::class, 'daftarPerusahaan'])->name('perusahaan.pelamar.index');
+    Route::post('/perusahaan/iklan', function (Request $permintaan): RedirectResponse {
+        abort_unless($permintaan->user()->role === 'perusahaan', 403);
+
+        $valid = $permintaan->validate([
+            'lowongan_id' => ['required', 'integer'],
+            'paket' => ['required', 'in:7_hari,14_hari,30_hari'],
+            'metode_pembayaran' => ['required', 'in:Transfer Bank,QRIS,E-Wallet'],
+        ]);
+
+        $lowongan = App\Models\Lowongan::where('id', $valid['lowongan_id'])
+            ->where('perusahaan_id', $permintaan->user()->id)
+            ->firstOrFail();
+
+        $detailPaket = match ($valid['paket']) {
+            '14_hari' => ['hari' => 14, 'label' => '14 Hari (Rp 90.000)'],
+            '30_hari' => ['hari' => 30, 'label' => '30 Hari (Rp 150.000)'],
+            default => ['hari' => 7, 'label' => '7 Hari (Rp 50.000)'],
+        };
+
+        $lowongan->update([
+            'iklan_sampai' => now()->addDays($detailPaket['hari']),
+            'iklan_paket' => $detailPaket['label'],
+        ]);
+
+        return back()->with('status', "Pembayaran ({$valid['metode_pembayaran']}) berhasil! Lowongan \"{$lowongan->judul}\" sekarang diiklankan paling atas hingga {$lowongan->iklan_sampai->format('d M Y')}.");
+    })->name('perusahaan.iklan.store');
     Route::get('/perusahaan/{perusahaan}/legalitas', [AdminController::class, 'unduhLegalitas'])->name('perusahaan.legalitas');
 
     Route::get('/lamaran', [LamaranController::class, 'index'])->name('lamaran.index');
@@ -85,6 +121,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/admin/verifikasi', [AdminController::class, 'verifikasiIndex'])->name('admin.verifikasi.index');
     Route::patch('/admin/verifikasi/{perusahaan}', [AdminController::class, 'verifikasiUpdate'])->name('admin.verifikasi.update');
     Route::get('/admin/pengguna', [AdminController::class, 'penggunaIndex'])->name('admin.pengguna.index');
+    Route::get('/admin/katalog', [AdminController::class, 'katalogIndex'])->name('admin.katalog.index');
 
     Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
     Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');

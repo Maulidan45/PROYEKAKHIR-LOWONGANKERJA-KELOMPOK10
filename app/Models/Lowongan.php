@@ -10,14 +10,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['kategori_id', 'judul', 'lokasi', 'tipe_kerja', 'gaji_min', 'gaji_max', 'batas_lamaran', 'deskripsi', 'aktif', 'sumber', 'eksternal_id', 'sumber_url'])]
+#[Fillable(['kategori_id', 'judul', 'lokasi', 'tipe_kerja', 'gaji_min', 'gaji_max', 'batas_lamaran', 'deskripsi', 'aktif', 'sumber', 'eksternal_id', 'sumber_url', 'iklan_sampai', 'iklan_paket'])]
 class Lowongan extends Model
 {
     use HasFactory;
 
     protected function casts(): array
     {
-        return ['aktif' => 'boolean', 'batas_lamaran' => 'date', 'gaji_min' => 'integer', 'gaji_max' => 'integer'];
+        return ['aktif' => 'boolean', 'batas_lamaran' => 'date', 'gaji_min' => 'integer', 'gaji_max' => 'integer', 'iklan_sampai' => 'datetime'];
     }
 
     public function kategori(): BelongsTo
@@ -87,6 +87,8 @@ class Lowongan extends Model
             }
         }
 
+        $kueri->orderByRaw('CASE WHEN iklan_sampai IS NOT NULL AND iklan_sampai >= ? THEN 0 ELSE 1 END', [now()]);
+
         match ($penyaring['urutkan'] ?? 'terbaru') {
             'gaji_tertinggi' => $kueri->orderByDesc('gaji_max')->orderByDesc('id'),
             'batas_terdekat' => $kueri->orderByRaw('batas_lamaran IS NULL')->orderBy('batas_lamaran')->orderByDesc('id'),
@@ -94,6 +96,11 @@ class Lowongan extends Model
         };
 
         return $kueri;
+    }
+
+    public function sedangDiiklankan(): bool
+    {
+        return $this->iklan_sampai !== null && $this->iklan_sampai->isFuture();
     }
 
     public function masihMenerimaLamaran(): bool

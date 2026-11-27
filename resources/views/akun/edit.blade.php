@@ -1,6 +1,5 @@
-<x-layout judul="Akun perusahaan | Lokerku">
-    <div class="mx-auto w-[min(72rem,calc(100%-2rem))] py-8 sm:w-[min(72rem,calc(100%-3rem))] sm:py-12">
-        <section class="min-w-0">
+<x-panel-perusahaan judul="Profil Perusahaan" aktif="akun">
+        <section class="min-w-0 rounded-3xl border-[1.5px] border-slate-200/90 bg-white/85 p-5 shadow-[0_10px_30px_-10px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:p-7">
             @if ($errors->any())
                 <div class="mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-900" role="alert" tabindex="-1" data-kesalahan-formulir>
                     <h2 class="font-semibold">Perubahan belum disimpan.</h2>
@@ -41,6 +40,18 @@
                 <form method="POST" action="{{ route('akun.profil.update') }}" enctype="multipart/form-data" class="form-akun form-profil" data-kirim>
                     @csrf
                     @method('PATCH')
+                    <div class="isian sm:col-span-2">
+                        <label for="foto_profil_pt">Foto Profil / Logo Perusahaan (JPG, PNG, WEBP, maks 2 MB)</label>
+                        <div class="mt-1 flex flex-wrap items-center gap-4">
+                            @if ($pengguna->foto_profil_path)
+                                <img src="{{ asset('storage/' . $pengguna->foto_profil_path) }}" alt="{{ $pengguna->name }}" class="size-16 rounded-2xl border border-slate-200 object-cover">
+                            @else
+                                <span class="grid size-16 place-items-center rounded-2xl bg-[#E0F2FE] text-xl font-extrabold text-[#007AFF]">{{ mb_strtoupper(mb_substr($pengguna->name, 0, 1)) }}</span>
+                            @endif
+                            <input id="foto_profil_pt" name="foto_profil" type="file" accept=".jpg,.jpeg,.png,.webp" class="flex-1">
+                        </div>
+                        @error('foto_profil')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                    </div>
                     <div class="isian"><label for="name">Nama perusahaan</label><input id="name" name="name" value="{{ old('name', $pengguna->name) }}" maxlength="255" required @error('name') aria-invalid="true" aria-describedby="name-error" @enderror>@error('name')<p id="name-error" class="kesalahan-isian">{{ $message }}</p>@enderror</div>
                     <div class="isian"><label for="telepon">Nomor telepon</label><input id="telepon" name="telepon" type="tel" value="{{ old('telepon', $profil['telepon'] ?? '') }}" maxlength="25" autocomplete="tel" required @error('telepon') aria-invalid="true" aria-describedby="telepon-error" @enderror>@error('telepon')<p id="telepon-error" class="kesalahan-isian">{{ $message }}</p>@enderror</div>
                     <div class="isian"><label for="bidang_usaha">Bidang usaha</label><input id="bidang_usaha" name="bidang_usaha" value="{{ old('bidang_usaha', $profil['bidang_usaha'] ?? '') }}" maxlength="100" required @error('bidang_usaha') aria-invalid="true" aria-describedby="bidang_usaha-error" @enderror>@error('bidang_usaha')<p id="bidang_usaha-error" class="kesalahan-isian">{{ $message }}</p>@enderror</div>
@@ -96,5 +107,4 @@
                 </div>
             </div>
         </section>
-    </div>
-</x-layout>
+</x-panel-perusahaan>

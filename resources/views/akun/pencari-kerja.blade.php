@@ -1,14 +1,13 @@
-<x-layout judul="Profil & Akun | Lokerku">
+<x-panel-user judul="Profil & Akun" aktif="akun">
     @php($profil = $pengguna->profil_pendaftaran ?? [])
-    <div class="mx-auto w-[min(72rem,calc(100%-2rem))] py-8 sm:w-[min(72rem,calc(100%-3rem))] sm:py-12">
-        <section class="min-w-0" aria-label="Pengaturan akun">
+    <section class="min-w-0 rounded-3xl border-[1.5px] border-slate-200/90 bg-white/85 p-5 shadow-[0_10px_30px_-10px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:p-7" aria-label="Pengaturan akun">
             @if ($errors->any())
                 <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900" role="alert" tabindex="-1">
                     <h2 class="font-semibold">Perubahan belum disimpan.</h2>
                     <p class="mt-1">Periksa isian yang ditandai di bawah.</p>
                 </div>
             @endif
-            @php($bagianValidasi = $errors->hasAny(['name', 'telepon', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'domisili', 'pendidikan_terakhir', 'pengalaman_kerja', 'keahlian']) ? 'profil-akun' : ($errors->hasAny(['email', 'current_password_email']) ? 'email-akun' : ($errors->hasAny(['current_password_password', 'password']) ? 'keamanan-akun' : null)))
+            @php($bagianValidasi = $errors->hasAny(['name', 'telepon', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'domisili', 'alamat_lengkap', 'pendidikan_terakhir', 'institusi_pendidikan', 'jurusan', 'tahun_lulus', 'pengalaman_kerja', 'keahlian', 'ringkasan_pribadi', 'portofolio_url', 'ekspektasi_gaji', 'foto_profil', 'cv_default', 'surat_lamaran_default', 'ijazah_default']) ? 'profil-akun' : ($errors->hasAny(['email', 'current_password_email']) ? 'email-akun' : ($errors->hasAny(['current_password_password', 'password']) ? 'keamanan-akun' : null)))
             @php($bagianAwal = $bagianValidasi ?? 'profil-akun')
             <div class="layout-akun">
                 <nav class="navigasi-akun" aria-label="Bagian pengaturan akun" data-navigasi-akun>
@@ -26,9 +25,21 @@
                                 <p>Kelengkapan profil: <strong>{{ $pengguna->persentaseKelengkapanProfil() }}%</strong>. Data ini otomatis mengisi formulir lamaran Anda.</p>
                             </div>
                         </header>
-                        <form method="POST" action="{{ route('akun.profil.update') }}" class="form-akun form-profil" data-kirim>
+                        <form method="POST" action="{{ route('akun.profil.update') }}" enctype="multipart/form-data" class="form-akun form-profil" data-kirim>
                             @csrf
                             @method('PATCH')
+                            <div class="isian sm:col-span-2">
+                                <label for="foto_profil_user">Foto Profil (JPG, PNG, WEBP, maks 2 MB)</label>
+                                <div class="mt-1 flex flex-wrap items-center gap-4">
+                                    @if ($pengguna->foto_profil_path)
+                                        <img src="{{ asset('storage/' . $pengguna->foto_profil_path) }}" alt="{{ $pengguna->name }}" class="size-16 rounded-full border border-slate-200 object-cover">
+                                    @else
+                                        <span class="grid size-16 place-items-center rounded-full bg-[#E0F2FE] text-xl font-extrabold text-[#007AFF]">{{ mb_strtoupper(mb_substr($pengguna->name, 0, 1)) }}</span>
+                                    @endif
+                                    <input id="foto_profil_user" name="foto_profil" type="file" accept=".jpg,.jpeg,.png,.webp" class="flex-1">
+                                </div>
+                                @error('foto_profil')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
                             <div class="isian">
                                 <label for="name">Nama lengkap</label>
                                 <input id="name" name="name" value="{{ old('name', $pengguna->name) }}" maxlength="255" autocomplete="name" required>
@@ -65,6 +76,11 @@
                                 @error('domisili')<p class="kesalahan-isian">{{ $message }}</p>@enderror
                             </div>
                             <div class="isian">
+                                <label for="alamat_lengkap">Alamat lengkap</label>
+                                <input id="alamat_lengkap" name="alamat_lengkap" value="{{ old('alamat_lengkap', $profil['alamat_lengkap'] ?? '') }}" maxlength="500" placeholder="Jalan, RT/RW, Kecamatan">
+                                @error('alamat_lengkap')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="isian">
                                 <label for="pendidikan_terakhir">Pendidikan terakhir</label>
                                 <select id="pendidikan_terakhir" name="pendidikan_terakhir">
                                     <option value="">Pilih pendidikan</option>
@@ -75,14 +91,59 @@
                                 @error('pendidikan_terakhir')<p class="kesalahan-isian">{{ $message }}</p>@enderror
                             </div>
                             <div class="isian">
+                                <label for="institusi_pendidikan">Nama Sekolah / Universitas</label>
+                                <input id="institusi_pendidikan" name="institusi_pendidikan" value="{{ old('institusi_pendidikan', $profil['institusi_pendidikan'] ?? '') }}" maxlength="255" placeholder="Contoh: Universitas Indonesia">
+                                @error('institusi_pendidikan')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="isian">
+                                <label for="jurusan">Jurusan / Program Studi</label>
+                                <input id="jurusan" name="jurusan" value="{{ old('jurusan', $profil['jurusan'] ?? '') }}" maxlength="150" placeholder="Contoh: Teknik Informatika">
+                                @error('jurusan')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="isian">
+                                <label for="tahun_lulus">Tahun Lulus</label>
+                                <input id="tahun_lulus" name="tahun_lulus" type="number" min="1960" max="{{ (int) date('Y') + 5 }}" value="{{ old('tahun_lulus', $profil['tahun_lulus'] ?? '') }}" placeholder="Contoh: 2025">
+                                @error('tahun_lulus')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="isian">
+                                <label for="ekspektasi_gaji">Ekspektasi Gaji</label>
+                                <input id="ekspektasi_gaji" name="ekspektasi_gaji" value="{{ old('ekspektasi_gaji', $profil['ekspektasi_gaji'] ?? '') }}" maxlength="100" placeholder="Contoh: Rp 6.000.000 - Rp 8.000.000">
+                                @error('ekspektasi_gaji')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="isian">
+                                <label for="portofolio_url">Tautan Portofolio / LinkedIn / GitHub</label>
+                                <input id="portofolio_url" name="portofolio_url" type="url" value="{{ old('portofolio_url', $profil['portofolio_url'] ?? '') }}" placeholder="https://...">
+                                @error('portofolio_url')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="isian">
                                 <label for="keahlian">Keahlian (pisahkan dengan koma)</label>
                                 <input id="keahlian" name="keahlian" value="{{ old('keahlian', $profil['keahlian'] ?? '') }}" placeholder="Contoh: Laravel, PHP, MySQL, Excel">
                                 @error('keahlian')<p class="kesalahan-isian">{{ $message }}</p>@enderror
                             </div>
                             <div class="isian">
+                                <label for="ringkasan_pribadi">Tentang Saya / Ringkasan Diri</label>
+                                <textarea id="ringkasan_pribadi" name="ringkasan_pribadi" rows="2" placeholder="Ceritakan singkat latar belakang dan tujuan karier Anda...">{{ old('ringkasan_pribadi', $profil['ringkasan_pribadi'] ?? '') }}</textarea>
+                                @error('ringkasan_pribadi')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="isian">
                                 <label for="pengalaman_kerja">Pengalaman kerja</label>
                                 <textarea id="pengalaman_kerja" name="pengalaman_kerja" rows="3" placeholder="Ringkasan pengalaman kerja atau magang...">{{ old('pengalaman_kerja', $profil['pengalaman_kerja'] ?? '') }}</textarea>
                                 @error('pengalaman_kerja')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="isian">
+                                <label for="cv_default">Berkas CV Utama (PDF, maks 5 MB) @if(!empty($profil['cv_default_path'])) <span class="text-emerald-600 font-bold">(Sudah terunggah)</span> @endif</label>
+                                <input id="cv_default" name="cv_default" type="file" accept=".pdf">
+                                @error('cv_default')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="isian">
+                                <label for="surat_lamaran_default">Berkas Surat Lamaran Utama (PDF, maks 5 MB) @if(!empty($profil['surat_lamaran_default_path'])) <span class="text-emerald-600 font-bold">(Sudah terunggah)</span> @endif</label>
+                                <input id="surat_lamaran_default" name="surat_lamaran_default" type="file" accept=".pdf">
+                                @error('surat_lamaran_default')<p class="kesalahan-isian">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="isian">
+                                <label for="ijazah_default">Berkas Ijazah Terakhir (PDF/JPG/PNG, maks 5 MB) @if(!empty($profil['ijazah_default_path'])) <span class="text-emerald-600 font-bold">(Sudah terunggah)</span> @endif</label>
+                                <input id="ijazah_default" name="ijazah_default" type="file" accept=".pdf,.jpg,.jpeg,.png">
+                                @error('ijazah_default')<p class="kesalahan-isian">{{ $message }}</p>@enderror
                             </div>
                             <button class="tombol-utama" type="submit" data-teks-proses="Menyimpan…">Simpan Profil</button>
                         </form>
@@ -118,5 +179,4 @@
                 </div>
             </div>
         </section>
-    </div>
-</x-layout>
+</x-panel-user>

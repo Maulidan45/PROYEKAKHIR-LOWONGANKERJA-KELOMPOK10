@@ -108,9 +108,22 @@ class LamaranController extends Controller
         $berkasTersimpan = [];
 
         try {
+            $profil = $pengguna->profil_pendaftaran ?? [];
+            $petaDefault = [
+                'cv' => 'cv_default_path',
+                'surat_lamaran' => 'surat_lamaran_default_path',
+                'ijazah' => 'ijazah_default_path',
+            ];
+
             foreach (['cv', 'surat_lamaran', 'ijazah', 'portofolio', 'sertifikat'] as $kunci) {
                 if ($permintaan->hasFile($kunci)) {
                     $berkasTersimpan[$kunci] = $permintaan->file($kunci)->store($direktori, 'local');
+                } elseif (isset($petaDefault[$kunci]) && ! empty($profil[$petaDefault[$kunci]]) && Storage::disk('local')->exists($profil[$petaDefault[$kunci]])) {
+                    $sumber = $profil[$petaDefault[$kunci]];
+                    $ekstensi = pathinfo($sumber, PATHINFO_EXTENSION) ?: 'pdf';
+                    $tujuan = "{$direktori}/{$kunci}-".uniqid().'.'.$ekstensi;
+                    Storage::disk('local')->copy($sumber, $tujuan);
+                    $berkasTersimpan[$kunci] = $tujuan;
                 }
             }
 

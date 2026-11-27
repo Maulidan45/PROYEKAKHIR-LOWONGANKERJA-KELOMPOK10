@@ -1,11 +1,10 @@
 @php($perusahaan = auth()->user()->role === 'perusahaan')
 @if ($perusahaan)
-<x-layout :judul="'Pelamar · ' . $lowongan->judul . ' | Lokerku'">
-    <div class="mx-auto w-[min(72rem,calc(100%-2rem))] py-8 sm:w-[min(72rem,calc(100%-3rem))] sm:py-12">
-        <section class="mx-auto min-w-0 max-w-5xl">
-            <x-kepala-halaman label="Rekrutmen" judul="Pelamar · {{ $lowongan->judul }}" deskripsi="Tinjau kandidat, unduh berkas persyaratan, dan perbarui tahapan seleksi.">
-                <a class="tombol-kedua" href="{{ route('perusahaan.pelamar.index') }}">Semua pelamar</a>
-            </x-kepala-halaman>
+<x-panel-perusahaan :judul="'Pelamar · ' . $lowongan->judul" aktif="pelamar">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <h1 class="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">Pelamar · {{ $lowongan->judul }}</h1>
+        <a class="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-[#E0F2FE] hover:text-[#007AFF]" href="{{ route('perusahaan.pelamar.index') }}">Semua Pelamar</a>
+    </div>
 
             @php($jumlahPerStatus = $lowongan->lamarans->countBy('status'))
             <div class="mb-5 flex flex-wrap items-center gap-2" aria-label="Ringkasan status lamaran">
@@ -74,10 +73,8 @@
                         <a class="tombol-kedua mt-4" href="{{ route('lowongan.edit', $lowongan) }}">Ubah lowongan</a>
                     </div>
                 @endforelse
-            </section>
         </section>
-    </div>
-</x-layout>
+    </x-panel-perusahaan>
 @else
 <x-panel-admin :judul="'Pelamar: ' . $lowongan->judul" label="Pantauan Pelamar" aktif="lowongan" :deskripsi="$lowongan->perusahaan->name . ' · ' . $lowongan->lokasi">
     <x-slot:aksi>

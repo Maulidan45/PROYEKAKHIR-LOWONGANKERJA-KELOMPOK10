@@ -1,6 +1,6 @@
-<x-layout :judul="'Detail Lamaran - ' . $lamaran->lowongan->judul . ' | Lokerku'">
+<x-dynamic-component :component="$adalahPerusahaan ? 'panel-perusahaan' : 'panel-user'" :judul="'Detail Lamaran - ' . $lamaran->lowongan->judul" :aktif="$adalahPerusahaan ? 'pelamar' : 'lamaran'">
     @php($dataPelamar = $lamaran->data_pelamar ?? [])
-    <div class="mx-auto w-[min(72rem,calc(100%-2rem))] py-8 sm:py-12">
+    <div>
         <nav class="mb-5 flex items-center justify-between gap-3 text-sm">
             <a class="font-medium text-blue-700 hover:underline" href="{{ $adalahPerusahaan ? route('lowongan.pelamar', $lamaran->lowongan) : route('lamaran.index') }}">
                 &larr; Kembali ke {{ $adalahPerusahaan ? 'daftar pelamar' : 'riwayat lamaran' }}
@@ -183,4 +183,4 @@
             </aside>
         </div>
     </div>
-</x-layout>
+</x-dynamic-component>

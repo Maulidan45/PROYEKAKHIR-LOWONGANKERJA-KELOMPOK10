@@ -69,6 +69,10 @@ class DasborController extends Controller
                 ->limit(4)
                 ->get();
             $data['notifikasiTerbaru'] = $pengguna->unreadNotifications()->latest()->limit(5)->get();
+            $data['lowonganPerusahaanAktif'] = (clone $lowonganPerusahaan)
+                ->terbuka()
+                ->orderByDesc('id')
+                ->get(['id', 'judul', 'iklan_sampai', 'iklan_paket']);
         }
 
         if ($role === 'user') {
@@ -76,6 +80,7 @@ class DasborController extends Controller
                 'kata_kunci' => ['nullable', 'string', 'max:150', 'not_regex:/<\s*script\b/i'],
                 'kategori' => ['nullable', 'integer', 'exists:kategoris,id'],
                 'lokasi' => ['nullable', 'string', 'max:100'],
+                'tipe' => ['nullable', 'in:Penuh waktu,Paruh waktu,Magang,Jarak jauh'],
             ]);
 
             $kueriLowongan = Lowongan::terbuka()->with(['kategori', 'perusahaan']);
@@ -89,6 +94,8 @@ class DasborController extends Controller
             });
             $kueriLowongan->when($penyaring['kategori'] ?? null, fn ($kueri, $kategori) => $kueri->where('kategori_id', $kategori));
             $kueriLowongan->when($penyaring['lokasi'] ?? null, fn ($kueri, $lokasi) => $kueri->where('lokasi', $lokasi));
+            $kueriLowongan->when($penyaring['tipe'] ?? null, fn ($kueri, $tipe) => $kueri->where('tipe_kerja', $tipe));
+            $kueriLowongan->orderByRaw('CASE WHEN iklan_sampai IS NOT NULL AND iklan_sampai >= ? THEN 0 ELSE 1 END', [now()]);
 
             $lamaranStatusCount = $pengguna->lamarans()
                 ->selectRaw('status, count(*) as jumlah')

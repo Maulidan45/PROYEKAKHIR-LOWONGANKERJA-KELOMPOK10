@@ -33,9 +33,20 @@ class AkunController extends Controller
                 'tanggal_lahir' => ['nullable', 'date', 'before:today'],
                 'jenis_kelamin' => ['nullable', Rule::in(['Laki-laki', 'Perempuan'])],
                 'domisili' => ['nullable', 'string', 'max:255', 'not_regex:/\x00/'],
+                'alamat_lengkap' => ['nullable', 'string', 'max:500', 'not_regex:/\x00/'],
                 'pendidikan_terakhir' => ['nullable', Rule::in(['SD', 'SMP', 'SMA/SMK', 'Diploma', 'S1', 'S2', 'S3'])],
+                'institusi_pendidikan' => ['nullable', 'string', 'max:255', 'not_regex:/\x00/'],
+                'jurusan' => ['nullable', 'string', 'max:150', 'not_regex:/\x00/'],
+                'tahun_lulus' => ['nullable', 'integer', 'min:1960', 'max:'.((int) date('Y') + 5)],
                 'pengalaman_kerja' => ['nullable', 'string', 'max:2000', 'not_regex:/\x00/'],
                 'keahlian' => ['nullable', 'string', 'max:1000', 'not_regex:/\x00/'],
+                'ringkasan_pribadi' => ['nullable', 'string', 'max:1500', 'not_regex:/\x00/'],
+                'portofolio_url' => ['nullable', 'string', 'max:255', 'url:http,https'],
+                'ekspektasi_gaji' => ['nullable', 'string', 'max:100', 'not_regex:/\x00/'],
+                'foto_profil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+                'cv_default' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+                'surat_lamaran_default' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+                'ijazah_default' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             ], $this->pesanValidasi(), [
                 'name' => 'Nama lengkap',
                 'telepon' => 'Nomor telepon',
@@ -43,14 +54,42 @@ class AkunController extends Controller
                 'tanggal_lahir' => 'Tanggal lahir',
                 'jenis_kelamin' => 'Jenis kelamin',
                 'domisili' => 'Domisili',
+                'alamat_lengkap' => 'Alamat lengkap',
                 'pendidikan_terakhir' => 'Pendidikan terakhir',
+                'institusi_pendidikan' => 'Institusi pendidikan',
+                'jurusan' => 'Jurusan',
+                'tahun_lulus' => 'Tahun lulus',
                 'pengalaman_kerja' => 'Pengalaman kerja',
                 'keahlian' => 'Keahlian',
+                'ringkasan_pribadi' => 'Ringkasan diri',
+                'portofolio_url' => 'Tautan portofolio',
+                'ekspektasi_gaji' => 'Ekspektasi gaji',
+                'foto_profil' => 'Foto profil',
+                'cv_default' => 'CV (PDF)',
+                'surat_lamaran_default' => 'Surat lamaran (PDF)',
+                'ijazah_default' => 'Ijazah terakhir',
             ]);
 
             $pengguna->fill(['name' => $data['name']]);
+            if ($permintaan->hasFile('foto_profil')) {
+                if ($pengguna->foto_profil_path) {
+                    Storage::disk('public')->delete($pengguna->foto_profil_path);
+                }
+                $pengguna->foto_profil_path = $permintaan->file('foto_profil')->store('foto-profil', 'public');
+            }
+
             $profilLama = $pengguna->profil_pendaftaran ?? [];
-            $profilBaru = array_merge($profilLama, Arr::except($data, ['name']));
+            $profilBaru = array_merge($profilLama, Arr::except($data, ['name', 'foto_profil', 'cv_default', 'surat_lamaran_default', 'ijazah_default']));
+
+            foreach (['cv_default' => 'cv_default_path', 'surat_lamaran_default' => 'surat_lamaran_default_path', 'ijazah_default' => 'ijazah_default_path'] as $inputBerkas => $kunciPath) {
+                if ($permintaan->hasFile($inputBerkas)) {
+                    if (! empty($profilLama[$kunciPath])) {
+                        Storage::disk('local')->delete($profilLama[$kunciPath]);
+                    }
+                    $profilBaru[$kunciPath] = $permintaan->file($inputBerkas)->store("profil-dokumen/{$pengguna->id}", 'local');
+                }
+            }
+
             $pengguna->profil_pendaftaran = $profilBaru;
             $pengguna->save();
 
@@ -69,11 +108,19 @@ class AkunController extends Controller
             'situs_perusahaan' => ['nullable', 'string', 'max:255', 'url:http,https'],
             'nama_penanggung_jawab' => ['required', 'string', 'max:255', 'not_regex:/\x00/'],
             'jabatan_penanggung_jawab' => ['required', 'string', 'max:100', 'not_regex:/\x00/'],
+            'foto_profil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'dokumen_legalitas' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ], $this->pesanValidasi(), $this->atributProfil());
 
         $pengguna->fill(Arr::only($data, ['name']));
-        $pengguna->profil_pendaftaran = Arr::except($data, ['name', 'dokumen_legalitas']);
+        $pengguna->profil_pendaftaran = Arr::except($data, ['name', 'foto_profil', 'dokumen_legalitas']);
+
+        if ($permintaan->hasFile('foto_profil')) {
+            if ($pengguna->foto_profil_path) {
+                Storage::disk('public')->delete($pengguna->foto_profil_path);
+            }
+            $pengguna->foto_profil_path = $permintaan->file('foto_profil')->store('foto-profil', 'public');
+        }
 
         if ($permintaan->hasFile('dokumen_legalitas')) {
             if ($pengguna->dokumen_legalitas_path) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class NotifikasiController extends Controller
@@ -21,6 +22,7 @@ class NotifikasiController extends Controller
     public function bacaSemua(Request $permintaan): RedirectResponse
     {
         $permintaan->user()->unreadNotifications->markAsRead();
+        Cache::forget("user:{$permintaan->user()->id}:unread_notif");
 
         return back()->with('status', 'Semua notifikasi ditandai sudah dibaca.');
     }
@@ -29,6 +31,7 @@ class NotifikasiController extends Controller
     {
         $notifikasi = $permintaan->user()->notifications()->where('id', $id)->firstOrFail();
         $notifikasi->markAsRead();
+        Cache::forget("user:{$permintaan->user()->id}:unread_notif");
 
         $urlTujuan = $notifikasi->data['url'] ?? null;
         if (is_string($urlTujuan) && $urlTujuan !== '') {
