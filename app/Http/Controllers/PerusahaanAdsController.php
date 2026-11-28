@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Lowongan;
 use App\Models\TransaksiAd;
 use App\Services\PaymenkuService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -223,7 +224,7 @@ class PerusahaanAdsController extends Controller
         return redirect()->route('perusahaan.ads.status', $transaksi);
     }
 
-    public function status(Request $permintaan, TransaksiAd $transaksi, PaymenkuService $paymenku): View
+    public function status(Request $permintaan, TransaksiAd $transaksi, PaymenkuService $paymenku): View|JsonResponse
     {
         $pengguna = $permintaan->user();
         abort_unless($pengguna->role === 'perusahaan' && $transaksi->perusahaan_id === $pengguna->id, 403);
@@ -240,6 +241,7 @@ class PerusahaanAdsController extends Controller
                         $statusPaymenku,
                         is_string($dataStatus['paid_at'] ?? null) ? $dataStatus['paid_at'] : null
                     );
+                    $transaksi->refresh();
 
                     if ($statusPaymenku === 'paid') {
                         $pesanStatus = 'Pembayaran terkonfirmasi lunas! Iklan lowongan Anda sekarang aktif dan tampil paling atas.';
@@ -248,6 +250,13 @@ class PerusahaanAdsController extends Controller
             } catch (Throwable) {
                 // Tetap tampilkan halaman instruksi pembayaran jika pengecekan sementara gagal.
             }
+        }
+
+        if ($permintaan->boolean('json')) {
+            return response()->json([
+                'status' => $transaksi->status,
+                'paid' => $transaksi->status === 'paid',
+            ]);
         }
 
         $transaksi->load('lowongan:id,judul,iklan_sampai,iklan_paket');

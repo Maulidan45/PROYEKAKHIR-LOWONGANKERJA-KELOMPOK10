@@ -24,7 +24,7 @@ class SecurityHeaders
         $tanggapan->headers->set('Cache-Control', 'no-store, private');
 
         if (! Vite::isRunningHot()) {
-            $tanggapan->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'");
+            $tanggapan->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'");
         }
 
         if ($permintaan->isSecure()) {

@@ -101,4 +101,47 @@
             </dl>
         </section>
     </div>
+
+    @if ($transaksi->status === 'pending')
+        <script>
+            (function () {
+                const statusUrl = @json(route('perusahaan.ads.status', ['transaksi' => $transaksi, 'cek' => 1, 'json' => 1]));
+                let sedangMengecek = false;
+
+                async function periksaStatus() {
+                    if (sedangMengecek) {
+                        return;
+                    }
+                    sedangMengecek = true;
+                    try {
+                        const res = await fetch(statusUrl, {
+                            headers: { 'Accept': 'application/json' },
+                            credentials: 'same-origin',
+                        });
+                        if (! res.ok) {
+                            return;
+                        }
+                        const data = await res.json();
+                        if (data.paid || (data.status && data.status !== 'pending')) {
+                            window.location.reload();
+                        }
+                    } catch (e) {
+                        // Abaikan error jaringan sementara; polling berikutnya akan mencoba lagi.
+                    } finally {
+                        sedangMengecek = false;
+                    }
+                }
+
+                const intervalId = window.setInterval(periksaStatus, 3500);
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible') {
+                        periksaStatus();
+                    }
+                });
+                window.addEventListener('beforeunload', function () {
+                    window.clearInterval(intervalId);
+                });
+            })();
+        </script>
+    @endif
 </x-panel-perusahaan>
