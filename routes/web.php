@@ -7,8 +7,11 @@ use App\Http\Controllers\DasborController;
 use App\Http\Controllers\JadwalWawancaraController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LamaranController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\LowonganController;
 use App\Http\Controllers\NotifikasiController;
+use App\Http\Controllers\PaymenkuWebhookController;
+use App\Http\Controllers\PerusahaanAdsController;
 use App\Http\Controllers\SimpanLowonganController;
 use App\Models\User;
 use App\Services\LowonganEksternalService;
@@ -51,6 +54,7 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/keluar', [AutentikasiController::class, 'keluar'])->name('logout');
     Route::get('/akun', [AkunController::class, 'edit'])->name('akun.edit');
     Route::patch('/akun/profil', [AkunController::class, 'perbaruiProfil'])->name('akun.profil.update');
+    Route::post('/akun/verifikasi/ajukan', [AkunController::class, 'ajukanVerifikasi'])->name('akun.verifikasi.ajukan');
     Route::patch('/akun/email', [AkunController::class, 'perbaruiEmail'])->name('akun.email.update');
     Route::patch('/akun/kata-sandi', [AkunController::class, 'perbaruiKataSandi'])->name('akun.kata_sandi.update');
 
@@ -61,35 +65,15 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/lowongan/{lowongan}/pelamar', [LamaranController::class, 'pelamar'])->name('lowongan.pelamar');
     Route::get('/lowongan/{lowongan}/lamar', [LamaranController::class, 'create'])->name('lamaran.create');
     Route::post('/lowongan/{lowongan}/lamaran', [LamaranController::class, 'store'])->name('lamaran.store');
+    Route::get('/favorit', [SimpanLowonganController::class, 'index'])->name('favorit.index');
     Route::post('/lowongan/{lowongan}/simpan', [SimpanLowonganController::class, 'toggle'])->name('lowongan.simpan');
 
     Route::get('/perusahaan/pelamar', [LamaranController::class, 'daftarPerusahaan'])->name('perusahaan.pelamar.index');
-    Route::post('/perusahaan/iklan', function (Request $permintaan): RedirectResponse {
-        abort_unless($permintaan->user()->role === 'perusahaan', 403);
-
-        $valid = $permintaan->validate([
-            'lowongan_id' => ['required', 'integer'],
-            'paket' => ['required', 'in:7_hari,14_hari,30_hari'],
-            'metode_pembayaran' => ['required', 'in:Transfer Bank,QRIS,E-Wallet'],
-        ]);
-
-        $lowongan = App\Models\Lowongan::where('id', $valid['lowongan_id'])
-            ->where('perusahaan_id', $permintaan->user()->id)
-            ->firstOrFail();
-
-        $detailPaket = match ($valid['paket']) {
-            '14_hari' => ['hari' => 14, 'label' => '14 Hari (Rp 90.000)'],
-            '30_hari' => ['hari' => 30, 'label' => '30 Hari (Rp 150.000)'],
-            default => ['hari' => 7, 'label' => '7 Hari (Rp 50.000)'],
-        };
-
-        $lowongan->update([
-            'iklan_sampai' => now()->addDays($detailPaket['hari']),
-            'iklan_paket' => $detailPaket['label'],
-        ]);
-
-        return back()->with('status', "Pembayaran ({$valid['metode_pembayaran']}) berhasil! Lowongan \"{$lowongan->judul}\" sekarang diiklankan paling atas hingga {$lowongan->iklan_sampai->format('d M Y')}.");
-    })->name('perusahaan.iklan.store');
+    Route::get('/perusahaan/ads', [PerusahaanAdsController::class, 'index'])->name('perusahaan.ads.index');
+    Route::post('/perusahaan/ads', [PerusahaanAdsController::class, 'store'])->name('perusahaan.ads.store');
+    Route::get('/perusahaan/ads/transaksi/{transaksi}', [PerusahaanAdsController::class, 'status'])->name('perusahaan.ads.status');
+    Route::delete('/perusahaan/ads/{lowongan}', [PerusahaanAdsController::class, 'destroy'])->name('perusahaan.ads.destroy');
+    Route::post('/perusahaan/iklan', [PerusahaanAdsController::class, 'store'])->name('perusahaan.iklan.store');
     Route::get('/perusahaan/{perusahaan}/legalitas', [AdminController::class, 'unduhLegalitas'])->name('perusahaan.legalitas');
 
     Route::get('/lamaran', [LamaranController::class, 'index'])->name('lamaran.index');
@@ -121,12 +105,22 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/admin/verifikasi', [AdminController::class, 'verifikasiIndex'])->name('admin.verifikasi.index');
     Route::patch('/admin/verifikasi/{perusahaan}', [AdminController::class, 'verifikasiUpdate'])->name('admin.verifikasi.update');
     Route::get('/admin/pengguna', [AdminController::class, 'penggunaIndex'])->name('admin.pengguna.index');
+    Route::patch('/admin/pengguna/{pengguna}/ban', [AdminController::class, 'penggunaBan'])->name('admin.pengguna.ban');
     Route::get('/admin/katalog', [AdminController::class, 'katalogIndex'])->name('admin.katalog.index');
+    Route::get('/admin/ads', [AdminController::class, 'adsIndex'])->name('admin.ads.index');
+    Route::patch('/admin/ads/{lowongan}', [AdminController::class, 'adsUpdate'])->name('admin.ads.update');
+    Route::get('/admin/laporan', [LaporanController::class, 'index'])->name('admin.laporan.index');
+    Route::patch('/admin/laporan/{laporan}', [LaporanController::class, 'update'])->name('admin.laporan.update');
+
+    Route::post('/laporan', [LaporanController::class, 'store'])->name('laporan.store');
 
     Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
     Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');
+    Route::patch('/kategori/{kategori}', [KategoriController::class, 'update'])->name('kategori.update');
     Route::delete('/kategori/{kategori}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
 });
+
+Route::post('/webhook/paymenku', [PaymenkuWebhookController::class, 'handle'])->name('webhook.paymenku');
 
 Route::get('/lowongan/{lowongan}', [LowonganController::class, 'show'])
     ->whereNumber('lowongan')

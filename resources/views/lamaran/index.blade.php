@@ -33,10 +33,10 @@
                         </div>
                     </article>
                 @empty
-                    <section class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-                        <h2 class="text-xl font-semibold tracking-tight text-slate-900">Belum ada lamaran</h2>
-                        <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">Pilih lowongan yang sesuai dari katalog untuk mulai melamar.</p>
-                        <a class="tombol-utama mt-5" href="{{ route('katalog') }}">Lihat Lowongan</a>
+                    <section class="flex flex-col items-center justify-center rounded-3xl border-[1.5px] border-dashed border-slate-300 bg-white/80 p-10 text-center">
+                        <h2 class="text-base font-bold tracking-tight text-slate-900">Belum ada lamaran</h2>
+                        <p class="mt-1.5 max-w-md text-center text-xs leading-5 text-slate-500">Pilih lowongan yang sesuai dari katalog untuk mulai melamar.</p>
+                        <a class="mt-4 inline-flex rounded-full bg-[#007AFF] px-5 py-2 text-xs font-bold !text-white shadow-sm shadow-[#007AFF]/20" href="{{ route('katalog') }}">Lihat Lowongan</a>
                     </section>
                 @endforelse
             </div>

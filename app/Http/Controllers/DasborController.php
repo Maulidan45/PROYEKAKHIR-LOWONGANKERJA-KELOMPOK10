@@ -146,6 +146,7 @@ class DasborController extends Controller
                 'Lamaran' => Lamaran::count(),
             ];
             $data['menungguVerifikasi'] = User::where('role', 'perusahaan')->where('status_verifikasi', 'Menunggu Verifikasi')->count();
+            $data['iklanAktifCount'] = Lowongan::whereNotNull('iklan_sampai')->where('iklan_sampai', '>', now())->count();
             $data['daftarAkun'] = User::latest('id')->paginate(10);
             $data['jumlahAkun'] = User::selectRaw('role, count(*) as total')->groupBy('role')->pluck('total', 'role');
             $data['lowonganTerbaruAdmin'] = Lowongan::terbuka()->with(['kategori:id,nama', 'perusahaan:id,name'])->latest()->limit(6)->get();

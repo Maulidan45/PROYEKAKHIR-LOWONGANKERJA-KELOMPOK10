@@ -8,22 +8,6 @@
 @endphp
 
 <x-panel-perusahaan judul="Dashboard" aktif="dashboard">
-    @if (! $pengguna->sudahTerverifikasi())
-        <div class="flex flex-wrap items-center justify-between gap-4 rounded-3xl border-[1.5px] border-amber-300 bg-amber-50/90 p-5 shadow-sm backdrop-blur-xl">
-            <div>
-                <p class="text-sm font-bold text-amber-950">Status Verifikasi: {{ $pengguna->status_verifikasi }}</p>
-                <p class="mt-1 text-xs text-amber-800">
-                    @if ($pengguna->status_verifikasi === 'Ditolak')
-                        {{ $pengguna->catatan_verifikasi ?? 'Dokumen legalitas ditolak. Silakan unggah ulang dokumen yang valid.' }}
-                    @else
-                        Unggah dokumen legalitas di Profil Perusahaan agar admin dapat menyetujui publikasi lowongan Anda.
-                    @endif
-                </p>
-            </div>
-            <a class="inline-flex min-h-10 shrink-0 items-center rounded-full bg-[#007AFF] px-5 text-xs font-bold !text-white shadow-sm shadow-[#007AFF]/25 transition hover:bg-[#0062CC]" href="{{ route('akun.edit') }}">Lengkapi Legalitas</a>
-        </div>
-    @endif
-
     <!-- Top Row: VISA-Style Iklan Loker Card + 4 Quick-Action Feature Cards -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-12 sm:gap-5">
         <!-- VISA-Style Blue Gradient Card for Iklan Loker -->
@@ -38,10 +22,10 @@
             </p>
             <div class="mt-4 flex items-center justify-between gap-2">
                 <span class="text-[11px] font-medium text-sky-100">{{ $daftarIklanAktif->count() }} loker sedang diiklankan</span>
-                <button type="button" onclick="document.getElementById('modal-iklan-loker').classList.remove('hidden'); document.getElementById('modal-iklan-loker').classList.add('flex');" class="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#007AFF] shadow-sm transition hover:bg-sky-50">
+                <a href="{{ route('perusahaan.ads.index') }}" class="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold !text-[#007AFF] shadow-sm transition hover:bg-sky-50">
                     <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="m12 3 2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6L7.1 18.2l.9-5.5-4-3.9 5.5-.8Z"/></svg>
                     Iklankan Loker
-                </button>
+                </a>
             </div>
         </section>
 
@@ -266,67 +250,6 @@
                     <a href="{{ route('perusahaan.pelamar.index') }}" class="rounded-full bg-[#007AFF] px-4 py-2 text-xs font-bold !text-white shadow-sm shadow-[#007AFF]/25 transition hover:bg-[#0062CC]">Tinjau</a>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal Iklan Loker (Promosi Prioritas #1) -->
-    <div id="modal-iklan-loker" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/35 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="judul-modal-iklan" onclick="if (event.target === this) { this.classList.add('hidden'); this.classList.remove('flex'); }">
-        <div class="w-full max-w-lg rounded-[28px] border-[1.5px] border-slate-200/90 bg-white/95 p-6 shadow-2xl backdrop-blur-2xl sm:p-7">
-            <div class="flex items-start justify-between gap-3 border-b border-slate-200/70 pb-4">
-                <div>
-                    <span class="inline-flex rounded-full bg-[#E0F2FE] px-3 py-1 text-[11px] font-bold text-[#007AFF]">LOKERKU ADS</span>
-                    <h2 id="judul-modal-iklan" class="mt-2 text-lg font-extrabold text-slate-900">Iklankan Lowongan</h2>
-                    <p class="text-xs text-slate-500">Lowongan yang diiklankan otomatis tampil paling atas di katalog publik.</p>
-                </div>
-                <button type="button" onclick="const m = document.getElementById('modal-iklan-loker'); m.classList.add('hidden'); m.classList.remove('flex');" class="grid size-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-slate-100" aria-label="Tutup">
-                    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            @if (($lowonganPerusahaanAktif ?? collect())->isNotEmpty())
-                <form method="POST" action="{{ route('perusahaan.iklan.store') }}" class="mt-5 space-y-4" data-kirim>
-                    @csrf
-                    <div>
-                        <label class="mb-1.5 block text-xs font-bold text-slate-700" for="pilih-loker-iklan">Pilih Lowongan Aktif</label>
-                        <select id="pilih-loker-iklan" name="lowongan_id" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 focus:border-[#007AFF] focus:outline-none" required>
-                            @foreach ($lowonganPerusahaanAktif as $lokerOpsi)
-                                <option value="{{ $lokerOpsi->id }}">
-                                    {{ $lokerOpsi->judul }} {{ ($lokerOpsi->iklan_sampai && $lokerOpsi->iklan_sampai->isFuture()) ? '(Sedang Diiklankan)' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="mb-1.5 block text-xs font-bold text-slate-700" for="pilih-paket-iklan">Pilih Paket Promosi</label>
-                        <select id="pilih-paket-iklan" name="paket" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 focus:border-[#007AFF] focus:outline-none" required>
-                            <option value="7_hari">7 Hari Tayang Teratas — Rp 50.000</option>
-                            <option value="14_hari">14 Hari Tayang Teratas — Rp 90.000</option>
-                            <option value="30_hari">30 Hari Tayang Teratas — Rp 150.000</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="mb-1.5 block text-xs font-bold text-slate-700" for="pilih-pembayaran-iklan">Metode Pembayaran</label>
-                        <select id="pilih-pembayaran-iklan" name="metode_pembayaran" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 focus:border-[#007AFF] focus:outline-none" required>
-                            <option value="QRIS">QRIS (Instan)</option>
-                            <option value="Transfer Bank">Transfer Bank (VA)</option>
-                            <option value="E-Wallet">E-Wallet (GoPay / OVO / DANA)</option>
-                        </select>
-                    </div>
-
-                    <div class="flex items-center justify-end gap-2 pt-2">
-                        <button type="button" onclick="const m = document.getElementById('modal-iklan-loker'); m.classList.add('hidden'); m.classList.remove('flex');" class="rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50">Batal</button>
-                        <button type="submit" class="rounded-full bg-[#007AFF] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-[#007AFF]/25 transition hover:bg-[#0062CC]" data-teks-proses="Memproses pembayaran…">Bayar &amp; Tayangkan</button>
-                    </div>
-                </form>
-            @else
-                <div class="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-                    <p class="text-sm font-bold text-slate-800">Belum ada lowongan aktif untuk diiklankan.</p>
-                    <p class="mt-1 text-xs text-slate-500">Pasang lowongan terlebih dahulu agar bisa dipromosikan.</p>
-                    <a href="{{ route('lowongan.index') }}" class="mt-4 inline-flex rounded-full bg-[#007AFF] px-5 py-2 text-xs font-bold !text-white">Ke Kelola Lowongan</a>
-                </div>
-            @endif
         </div>
     </div>
 </x-panel-perusahaan>

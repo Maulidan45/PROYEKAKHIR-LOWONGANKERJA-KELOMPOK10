@@ -7,7 +7,8 @@
     <meta name="theme-color" content="#007AFF">
     <meta name="description" content="{{ $deskripsi }}">
     <title>{{ $judul }}</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body @class(['relative min-h-screen bg-[#F8FAFC] text-slate-900 antialiased selection:bg-[#E0F2FE] selection:text-[#007AFF]', 'halaman-beranda' => $beranda, 'halaman-autentikasi' => $halamanAutentikasi, 'halaman-user' => auth()->user()?->role === 'user', 'halaman-admin' => $panelAdmin, 'halaman-perusahaan' => request()->routeIs('perusahaan.pelamar.*', 'lowongan.pelamar', 'wawancara.*') || (request()->routeIs('dashboard.role') && request()->route('role') === 'perusahaan') || (auth()->user()?->role === 'perusahaan' && request()->routeIs('akun.*', 'lowongan.*', 'lamaran.*'))])>
@@ -23,8 +24,8 @@
 @unless ($panelAdmin)
 <header class="sticky top-3 z-40 mx-auto w-[min(76rem,calc(100%-1.5rem))]">
     <nav class="flex min-h-[68px] items-center justify-between gap-4 rounded-full border border-white/80 bg-white/70 px-5 py-2.5 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:px-7" aria-label="Navigasi utama">
-        <a class="inline-flex items-center gap-1.5 text-2xl font-extrabold tracking-tight text-slate-900 no-underline" href="{{ auth()->check() ? route('dashboard') : route('home') }}">
-            <span class="grid size-8 place-items-center rounded-2xl bg-[#007AFF] text-sm font-black text-white shadow-sm shadow-[#007AFF]/30">L</span>
+        <a class="inline-flex items-center gap-2 text-2xl font-extrabold tracking-tight text-slate-900 no-underline" href="{{ auth()->check() ? route('dashboard') : route('home') }}">
+            <img src="{{ asset('logo.png') }}" alt="Lokerku" class="size-8 rounded-full object-cover shadow-sm sm:size-9">
             <span>lokerku<span class="text-[#007AFF]">.</span></span>
         </a>
         @unless ($halamanAutentikasi)

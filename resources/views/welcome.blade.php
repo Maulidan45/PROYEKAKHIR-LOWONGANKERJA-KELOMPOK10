@@ -1,32 +1,32 @@
 <x-layout judul="Lokerku | Lowongan kerja" :beranda="true">
-    <!-- Full-Width Blue Hero Banner (Matches LokerID Reference) -->
+    <!-- Full-Width Blue Hero Banner (Clean Mobile & Desktop) -->
     <section class="mt-3 bg-[#0888E8] text-white" aria-labelledby="judul-sorotan">
-        <div class="mx-auto grid w-[min(76rem,calc(100%-2rem))] items-center gap-8 py-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-10 lg:py-12">
-            <!-- Left: Headline + White Search Card -->
-            <div>
-                <h1 id="judul-sorotan" class="text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
+        <div class="mx-auto grid w-[min(76rem,calc(100%-1.5rem))] items-center gap-5 py-6 sm:w-[min(76rem,calc(100%-2rem))] sm:gap-8 sm:py-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-10 lg:py-12">
+            <!-- Left: Headline (Desktop) + White Search Card -->
+            <div class="min-w-0">
+                <h1 id="judul-sorotan" class="hidden !text-3xl font-bold !leading-tight tracking-tight text-white lg:block lg:!text-[2.75rem]">
                     #CariKerja makin mudah<br>
                     Pakai <strong class="font-extrabold">lokerku</strong>
                 </h1>
 
-                <form class="mt-6 rounded-xl bg-white p-4 text-slate-900 shadow-lg sm:p-5" action="{{ route('home') }}" method="GET" role="search" aria-label="Cari lowongan" autocomplete="off" data-pencarian-langsung data-api-lowongan="{{ route('api.v1.lowongan.index') }}" data-api-kabupaten="{{ route('api.v1.wilayah.kabupaten') }}" data-home-url="{{ route('home') }}">
+                <form class="rounded-2xl bg-white p-3.5 text-slate-900 shadow-lg sm:p-5 lg:mt-6" action="{{ route('home') }}" method="GET" role="search" aria-label="Cari lowongan" autocomplete="off" data-pencarian-langsung data-api-lowongan="{{ route('api.v1.lowongan.index') }}" data-api-kabupaten="{{ route('api.v1.wilayah.kabupaten') }}" data-home-url="{{ route('home') }}">
                     <!-- Keyword Row -->
-                    <div class="flex items-center gap-2.5">
+                    <div class="flex items-center gap-2">
                         <div class="flex-1">
                             <label class="teks-tersembunyi" for="kata-kunci">Kata kunci lowongan</label>
-                            <input id="kata-kunci" name="kata_kunci" value="{{ $cari }}" class="h-11 w-full rounded-lg border border-slate-300 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0888E8] focus:outline-none" placeholder="Masukkan kata kunci" autocomplete="off">
+                            <input id="kata-kunci" name="kata_kunci" value="{{ $cari }}" class="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#0888E8] focus:outline-none sm:h-11 sm:text-sm" placeholder="Masukkan kata kunci" autocomplete="off">
                         </div>
-                        <button class="grid size-11 shrink-0 place-items-center rounded-lg bg-[#1D4ED8] text-white transition hover:bg-[#1E40AF]" type="submit" aria-label="Cari lowongan">
-                            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4 4"/></svg>
+                        <button class="grid size-10 shrink-0 place-items-center rounded-xl bg-[#1D4ED8] text-white transition hover:bg-[#1E40AF] sm:size-11" type="submit" aria-label="Cari lowongan">
+                            <svg class="size-4 sm:size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4 4"/></svg>
                         </button>
                     </div>
 
                     <!-- Location & Category Filters Row -->
-                    <div class="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-                        <label class="flex h-11 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-xs text-slate-700 focus-within:border-[#0888E8]" for="pilih-provinsi">
-                            <svg class="size-4 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M19 10c0 5.5-7 11-7 11S5 15.5 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.2"/></svg>
+                    <div class="mt-2.5 grid grid-cols-2 gap-2 sm:mt-3 sm:grid-cols-3 sm:gap-2.5">
+                        <label class="flex h-10 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-2.5 text-xs text-slate-700 focus-within:border-[#0888E8] sm:h-11 sm:px-3" for="pilih-provinsi">
+                            <svg class="size-3.5 shrink-0 text-slate-500 sm:size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M19 10c0 5.5-7 11-7 11S5 15.5 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.2"/></svg>
                             <span class="teks-tersembunyi">Pilih provinsi</span>
-                            <select id="pilih-provinsi" name="provinsi" aria-label="Pilih provinsi" class="h-full w-full !min-h-0 !border-0 !bg-transparent !p-0 text-xs font-medium text-slate-700 focus:outline-none">
+                            <select id="pilih-provinsi" name="provinsi" aria-label="Pilih provinsi" class="h-full w-full !min-h-0 !border-0 !bg-transparent !p-0 text-[11px] font-medium text-slate-700 focus:outline-none sm:text-xs">
                                 <option value="">Semua provinsi</option>
                                 @foreach ($daftarProvinsi as $provinsiTersedia)
                                     <option value="{{ $provinsiTersedia['id'] }}" @selected($provinsi === $provinsiTersedia['id'])>{{ $provinsiTersedia['nama'] }}</option>
@@ -34,10 +34,10 @@
                             </select>
                         </label>
 
-                        <label class="flex h-11 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-xs text-slate-700 focus-within:border-[#0888E8]" for="pilih-lokasi">
-                            <svg class="size-4 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M19 10c0 5.5-7 11-7 11S5 15.5 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.2"/></svg>
+                        <label class="flex h-10 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-2.5 text-xs text-slate-700 focus-within:border-[#0888E8] sm:h-11 sm:px-3" for="pilih-lokasi">
+                            <svg class="size-3.5 shrink-0 text-slate-500 sm:size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M19 10c0 5.5-7 11-7 11S5 15.5 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.2"/></svg>
                             <span class="teks-tersembunyi">Cari lokasi</span>
-                            <select id="pilih-lokasi" name="lokasi" aria-label="Cari lokasi" class="h-full w-full !min-h-0 !border-0 !bg-transparent !p-0 text-xs font-medium text-slate-700 focus:outline-none">
+                            <select id="pilih-lokasi" name="lokasi" aria-label="Cari lokasi" class="h-full w-full !min-h-0 !border-0 !bg-transparent !p-0 text-[11px] font-medium text-slate-700 focus:outline-none sm:text-xs">
                                 <option value="">{{ $provinsi !== '' ? 'Semua kota/kabupaten' : 'Cari lokasi' }}</option>
                                 @if ($provinsi !== '')
                                     @foreach ($daftarKabupaten as $kabupatenTersedia)
@@ -51,10 +51,10 @@
                             </select>
                         </label>
 
-                        <label class="flex h-11 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-xs text-slate-700 focus-within:border-[#0888E8]" for="pilih-kategori">
-                            <svg class="size-4 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5h6v2M4 12h16M10 15h4"/></svg>
+                        <label class="col-span-2 flex h-10 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-2.5 text-xs text-slate-700 focus-within:border-[#0888E8] sm:col-span-1 sm:h-11 sm:px-3" for="pilih-kategori">
+                            <svg class="size-3.5 shrink-0 text-slate-500 sm:size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5h6v2M4 12h16M10 15h4"/></svg>
                             <span class="teks-tersembunyi">Cari kategori</span>
-                            <select id="pilih-kategori" name="kategori" aria-label="Cari kategori" class="h-full w-full !min-h-0 !border-0 !bg-transparent !p-0 text-xs font-medium text-slate-700 focus:outline-none">
+                            <select id="pilih-kategori" name="kategori" aria-label="Cari kategori" class="h-full w-full !min-h-0 !border-0 !bg-transparent !p-0 text-[11px] font-medium text-slate-700 focus:outline-none sm:text-xs">
                                 <option value="">Cari kategori</option>
                                 @foreach ($daftarKategori as $kategoriTersedia)
                                     <option value="{{ $kategoriTersedia->id }}" @selected($kategori === (string) $kategoriTersedia->id)>{{ $kategoriTersedia->nama }}</option>
@@ -67,43 +67,49 @@
                     <input type="hidden" name="gaji_min" value="{{ $gajiMin }}">
                     <input type="hidden" name="urutkan" value="{{ $urutkan }}">
 
-                    <!-- Popular Keywords -->
-                    <p class="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs leading-relaxed text-slate-700">
-                        <strong class="font-bold text-slate-900">Paling sering dicari:</strong>
-                        @foreach (['Staf Admin', 'Staf Accounting', 'Pemasaran Digital', 'E-Commerce & Marketplace', 'Administrasi Penjualan', 'Driver', 'Konsultan Penjualan', 'Content Marketing', 'Staf HRD'] as $saran)
-                            <a class="text-slate-700 underline decoration-slate-400 underline-offset-2 transition hover:text-[#0888E8]" href="{{ route('home', ['kata_kunci' => $saran]) }}">{{ $saran }}</a>
+                    <!-- Popular Keywords (Horizontal Scrollable Pills on Mobile) -->
+                    <div class="mt-3 flex items-center gap-1.5 overflow-x-auto pb-1 sm:mt-4 sm:flex-wrap sm:overflow-visible sm:pb-0">
+                        <strong class="shrink-0 text-[11px] font-bold text-slate-900 sm:text-xs">Populer:</strong>
+                        @foreach (['Staf Admin', 'Staf Accounting', 'Pemasaran Digital', 'Driver', 'Staf HRD'] as $saran)
+                            <a class="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700 transition hover:bg-[#E0F2FE] hover:text-[#0888E8]" href="{{ route('home', ['kata_kunci' => $saran]) }}">{{ $saran }}</a>
                         @endforeach
-                    </p>
+                    </div>
                 </form>
             </div>
 
-            <!-- Right: Visual -->
-            <div class="relative mx-auto w-full max-w-md lg:max-w-none">
-                <div class="overflow-hidden rounded-2xl bg-white/10 p-1.5 shadow-xl">
-                    <img class="aspect-[4/3] w-full rounded-xl object-cover" src="{{ asset('images/career-team.jpg') }}" alt="Tim berdiskusi dan bekerja sama di sekitar meja" width="1000" height="667" fetchpriority="high">
+            <!-- Right: Visual (Top on Mobile with Compact Centered Caption) -->
+            <div class="order-first mx-auto w-full max-w-md lg:order-last lg:max-w-none">
+                <div class="relative overflow-hidden rounded-2xl bg-white/15 p-1 shadow-xl sm:p-1.5">
+                    <img class="aspect-[16/9] w-full rounded-xl object-cover sm:aspect-[4/3]" src="{{ asset('awal.jpeg') }}" alt="Tim berdiskusi dan bekerja sama di sekitar meja" width="1000" height="667" fetchpriority="high">
+                    <div class="pointer-events-none absolute inset-x-1 bottom-1 flex flex-col items-center justify-end rounded-b-xl bg-gradient-to-t from-slate-950/75 via-slate-950/30 to-transparent px-3 pb-2.5 pt-8 text-center lg:hidden">
+                        <p class="!text-xs font-bold !leading-tight text-white drop-shadow-sm sm:!text-sm">
+                            #CariKerja makin mudah<br>
+                            Pakai <strong class="font-extrabold">lokerku</strong>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Job Catalog Section (Clean White LokerID Style) -->
-    <section class="bg-white py-10 sm:py-12" id="lowongan" aria-labelledby="judul-katalog">
-        <div class="mx-auto w-[min(76rem,calc(100%-2rem))]">
-            <header class="flex flex-wrap items-center justify-between gap-3">
-                <h2 id="judul-katalog" class="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Lowongan Kerja Terbaru</h2>
-                <p class="text-sm font-medium text-slate-500" data-jumlah-hasil>{{ $daftarLowongan->total() }} lowongan tersedia</p>
+    <section class="bg-white py-8 sm:py-12" id="lowongan" aria-labelledby="judul-katalog">
+        <div class="mx-auto w-[min(76rem,calc(100%-1.5rem))] sm:w-[min(76rem,calc(100%-2rem))]">
+            <header class="flex flex-wrap items-center justify-between gap-2">
+                <h2 id="judul-katalog" class="!text-lg font-extrabold tracking-tight text-slate-900 sm:!text-2xl">Lowongan Kerja Terbaru</h2>
+                <p class="text-xs font-medium text-slate-500 sm:text-sm" data-jumlah-hasil>{{ $daftarLowongan->total() }} lowongan tersedia</p>
             </header>
 
-            <!-- Category Tabs (Rectangular-Rounded like Reference) -->
-            <nav class="mt-5 flex flex-wrap items-center gap-2" aria-label="Kategori lowongan">
+            <!-- Category Tabs (1-Row Scrollable on Mobile) -->
+            <nav class="mt-4 flex items-center gap-2 overflow-x-auto pb-1 sm:mt-5 sm:flex-wrap sm:overflow-visible sm:pb-0" aria-label="Kategori lowongan">
                 <a @class([
-                    'rounded-lg border px-3.5 py-2 text-xs font-semibold transition',
+                    'shrink-0 whitespace-nowrap rounded-lg border px-3.5 py-2 text-xs font-semibold transition',
                     'border-[#0888E8] bg-[#EBF5FF] text-[#0888E8]' => $kategori === '',
                     'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50' => $kategori !== '',
                 ]) href="{{ route('home', array_filter(['kata_kunci' => $cari, 'lokasi' => $lokasi, 'tipe' => $tipe])) }}">Semua</a>
                 @foreach ($daftarKategori->take(5) as $kategoriTersedia)
                     <a @class([
-                        'rounded-lg border px-3.5 py-2 text-xs font-semibold transition',
+                        'shrink-0 whitespace-nowrap rounded-lg border px-3.5 py-2 text-xs font-semibold transition',
                         'border-[#0888E8] bg-[#EBF5FF] text-[#0888E8]' => $kategori === (string) $kategoriTersedia->id,
                         'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50' => $kategori !== (string) $kategoriTersedia->id,
                     ]) href="{{ route('home', array_filter(['kategori' => $kategoriTersedia->id, 'kata_kunci' => $cari, 'lokasi' => $lokasi, 'tipe' => $tipe])) }}" @if ($kategori === (string) $kategoriTersedia->id) aria-current="page" @endif>{{ $kategoriTersedia->nama }}</a>
@@ -134,10 +140,23 @@
                         <div>
                             <div class="flex items-start justify-between gap-3">
                                 <div class="flex min-w-0 items-start gap-3">
-                                    <span class="grid size-11 shrink-0 place-items-center rounded-full border border-slate-200 bg-slate-50 text-sm font-extrabold text-[#0888E8]" aria-hidden="true">{{ mb_strtoupper(mb_substr(str_replace('PT ', '', $lowongan->perusahaan->name), 0, 1)) }}</span>
+                                    @php
+                                        $fotoPt = $lowongan->perusahaan->foto_profil_path;
+                                        $logoUrl = $fotoPt
+                                            ? (str_starts_with($fotoPt, 'http') ? $fotoPt : asset('storage/' . $fotoPt))
+                                            : ($lowongan->sumber === 'remotive' && str_starts_with((string) $lowongan->eksternal_id, 'remotive-')
+                                                ? 'https://remotive.com/job/' . substr((string) $lowongan->eksternal_id, 9) . '/logo'
+                                                : null);
+                                    @endphp
+                                    @if ($logoUrl)
+                                        <img src="{{ $logoUrl }}" alt="{{ $lowongan->perusahaan->name }}" class="size-10 shrink-0 rounded-full border border-slate-200 bg-white object-cover sm:size-11" loading="lazy" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('grid');">
+                                        <span class="hidden size-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-slate-50 text-sm font-extrabold text-[#0888E8] sm:size-11" aria-hidden="true">{{ mb_strtoupper(mb_substr(str_replace('PT ', '', $lowongan->perusahaan->name), 0, 1)) }}</span>
+                                    @else
+                                        <span class="grid size-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-slate-50 text-sm font-extrabold text-[#0888E8] sm:size-11" aria-hidden="true">{{ mb_strtoupper(mb_substr(str_replace('PT ', '', $lowongan->perusahaan->name), 0, 1)) }}</span>
+                                    @endif
                                     <div class="min-w-0">
                                         <p class="truncate text-xs font-medium text-[#0888E8]">{{ $lowongan->perusahaan->name }}</p>
-                                        <h3 class="mt-0.5 text-base font-bold leading-snug text-slate-900">
+                                        <h3 class="mt-0.5 line-clamp-2 !text-sm font-bold !leading-snug text-slate-900 sm:!text-base">
                                             <a class="text-slate-900 hover:text-[#0888E8]" href="{{ route('lowongan.show', $lowongan) }}">{{ $lowongan->judul }}</a>
                                         </h3>
                                         <p class="mt-1 flex items-center gap-1 truncate text-xs text-slate-500">

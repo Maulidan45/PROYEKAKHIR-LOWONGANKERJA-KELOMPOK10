@@ -22,7 +22,7 @@ class User extends Authenticatable
 
     public const array JENIS_AKUN = ['admin' => 'Admin', 'perusahaan' => 'Perusahaan', 'user' => 'Pencari kerja'];
 
-    public const array STATUS_VERIFIKASI = ['Menunggu Verifikasi', 'Terverifikasi', 'Ditolak'];
+    public const array STATUS_VERIFIKASI = ['Belum Diajukan', 'Menunggu Verifikasi', 'Terverifikasi', 'Ditolak'];
 
     protected function email(): Attribute
     {
@@ -36,6 +36,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'profil_pendaftaran' => 'array',
             'diverifikasi_pada' => 'datetime',
+            'is_banned' => 'boolean',
+            'dibanned_pada' => 'datetime',
         ];
     }
 

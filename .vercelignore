@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+node_modules
+tests
+.phpunit.cache
+.vscode
+.idea
+storage/logs/*.log
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*.php

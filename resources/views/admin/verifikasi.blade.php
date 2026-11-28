@@ -21,21 +21,40 @@
                                 'bg-amber-100 text-amber-800' => $perusahaan->status_verifikasi === 'Menunggu Verifikasi',
                                 'bg-emerald-100 text-emerald-800' => $perusahaan->status_verifikasi === 'Terverifikasi',
                                 'bg-rose-100 text-rose-800' => $perusahaan->status_verifikasi === 'Ditolak',
+                                'bg-slate-100 text-slate-700' => $perusahaan->status_verifikasi === 'Belum Diajukan',
                             ])>{{ $perusahaan->status_verifikasi }}</span>
                         </div>
                         <p class="mt-1.5 text-sm text-slate-600">{{ $perusahaan->email }} &middot; {{ $profil['kota_perusahaan'] ?? '-' }} &middot; {{ $profil['bidang_usaha'] ?? '-' }}</p>
-                        @if (! empty($profil['nama_penanggung_jawab']))
-                            <p class="mt-1 text-xs text-slate-500">PIC: {{ $profil['nama_penanggung_jawab'] }} ({{ $profil['jabatan_penanggung_jawab'] ?? '-' }}) &middot; Telp: {{ $profil['telepon'] ?? '-' }}</p>
+                        @if (! empty($profil['nama_penanggung_jawab']) || ! empty($profil['nib_npwp']))
+                            <p class="mt-1 text-xs text-slate-500">
+                                PIC: {{ $profil['nama_penanggung_jawab'] ?? '-' }} ({{ $profil['jabatan_penanggung_jawab'] ?? '-' }}) &middot; Telp: {{ $profil['telepon'] ?? '-' }}
+                                @if (! empty($profil['nib_npwp']))
+                                    &middot; <strong class="text-slate-700">NIB/NPWP: {{ $profil['nib_npwp'] }}</strong>
+                                @endif
+                            </p>
                         @endif
                     </div>
                     <div class="flex shrink-0 flex-wrap items-center gap-2">
                         @if ($perusahaan->dokumen_legalitas_path)
-                            <a class="inline-flex min-h-10 items-center rounded-full border border-[#007AFF]/30 bg-[#E0F2FE] px-4 text-xs font-bold text-[#007AFF] transition hover:bg-sky-200/70" href="{{ route('perusahaan.legalitas', $perusahaan) }}">Unduh Dokumen Legalitas</a>
+                            @php($ekstensiDok = strtolower(pathinfo($perusahaan->dokumen_legalitas_path, PATHINFO_EXTENSION)))
+                            <a class="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-[#007AFF] px-4 text-xs font-bold !text-white shadow-sm transition hover:bg-[#0062CC]" href="{{ route('perusahaan.legalitas', ['perusahaan' => $perusahaan, 'pratinjau' => 1]) }}" target="_blank" rel="noopener noreferrer">
+                                Lihat {{ in_array($ekstensiDok, ['jpg', 'jpeg', 'png'], true) ? 'Gambar' : 'Dokumen' }}
+                            </a>
+                            <a class="inline-flex min-h-10 items-center rounded-full border border-[#007AFF]/30 bg-[#E0F2FE] px-4 text-xs font-bold text-[#007AFF] transition hover:bg-sky-200/70" href="{{ route('perusahaan.legalitas', $perusahaan) }}">Unduh</a>
                         @else
                             <span class="rounded-full border border-slate-200 bg-slate-100/80 px-3.5 py-1.5 text-xs font-medium text-slate-500">Belum unggah dokumen</span>
                         @endif
                     </div>
                 </div>
+
+                @if ($perusahaan->dokumen_legalitas_path && in_array(strtolower(pathinfo($perusahaan->dokumen_legalitas_path, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png'], true))
+                    <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3">
+                        <p class="mb-2 text-[11px] font-bold tracking-wide text-slate-500 uppercase">Pratinjau Dokumen Legalitas</p>
+                        <a href="{{ route('perusahaan.legalitas', ['perusahaan' => $perusahaan, 'pratinjau' => 1]) }}" target="_blank" rel="noopener noreferrer" class="inline-block">
+                            <img src="{{ route('perusahaan.legalitas', ['perusahaan' => $perusahaan, 'pratinjau' => 1]) }}" alt="Legalitas {{ $perusahaan->name }}" class="max-h-48 rounded-xl border border-slate-200 object-contain">
+                        </a>
+                    </div>
+                @endif
 
                 @if (! empty($profil['deskripsi_perusahaan']))
                     <p class="mt-4 text-sm leading-relaxed text-slate-600">{{ $profil['deskripsi_perusahaan'] }}</p>

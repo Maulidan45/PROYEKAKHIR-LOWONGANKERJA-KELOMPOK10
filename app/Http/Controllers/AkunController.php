@@ -7,6 +7,7 @@ use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -99,13 +100,22 @@ class AkunController extends Controller
         $pengguna = $this->perusahaan($permintaan);
         $data = $permintaan->validate([
             'name' => ['required', 'string', 'max:255', 'not_regex:/\x00/'],
+            'bentuk_badan_usaha' => ['required', 'string', Rule::in(['PT', 'CV', 'Firma', 'Koperasi', 'Yayasan', 'UMKM / Perseorangan'])],
+            'tahun_berdiri' => ['required', 'integer', 'min:1900', 'max:'.date('Y')],
+            'nib_npwp' => ['nullable', 'string', 'min:10', 'max:50', 'regex:/^[0-9A-Za-z.\-\/\s]+$/'],
             'telepon' => ['required', 'string', 'max:25', 'regex:/\A\+?[0-9][0-9 ()-]{7,24}\z/'],
+            'email_hrd' => ['required', 'string', 'email', 'max:255'],
             'bidang_usaha' => ['required', 'string', 'max:100', 'not_regex:/\x00/'],
             'jumlah_karyawan' => ['required', 'string', Rule::in(['1–10', '11–50', '51–200', '201–500', '501+'])],
-            'alamat_perusahaan' => ['required', 'string', 'max:500', 'not_regex:/\x00/'],
+            'provinsi_perusahaan' => ['required', 'string', 'max:100', 'not_regex:/\x00/'],
             'kota_perusahaan' => ['required', 'string', 'max:100', 'not_regex:/\x00/'],
+            'kode_pos' => ['required', 'string', 'regex:/^\d{5}$/'],
+            'alamat_perusahaan' => ['required', 'string', 'max:500', 'not_regex:/\x00/'],
             'deskripsi_perusahaan' => ['required', 'string', 'min:30', 'max:2000', 'not_regex:/\x00/'],
+            'visi_misi' => ['required', 'string', 'min:20', 'max:1500', 'not_regex:/\x00/'],
+            'keunggulan_perusahaan' => ['nullable', 'string', 'max:1000', 'not_regex:/\x00/'],
             'situs_perusahaan' => ['nullable', 'string', 'max:255', 'url:http,https'],
+            'linkedin_url' => ['nullable', 'string', 'max:255', 'url:http,https'],
             'nama_penanggung_jawab' => ['required', 'string', 'max:255', 'not_regex:/\x00/'],
             'jabatan_penanggung_jawab' => ['required', 'string', 'max:100', 'not_regex:/\x00/'],
             'foto_profil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -113,7 +123,10 @@ class AkunController extends Controller
         ], $this->pesanValidasi(), $this->atributProfil());
 
         $pengguna->fill(Arr::only($data, ['name']));
-        $pengguna->profil_pendaftaran = Arr::except($data, ['name', 'foto_profil', 'dokumen_legalitas']);
+        $pengguna->profil_pendaftaran = array_merge(
+            $pengguna->profil_pendaftaran ?? [],
+            Arr::except($data, ['name', 'foto_profil', 'dokumen_legalitas'])
+        );
 
         if ($permintaan->hasFile('foto_profil')) {
             if ($pengguna->foto_profil_path) {
@@ -136,6 +149,81 @@ class AkunController extends Controller
         $pengguna->save();
 
         return redirect()->route('akun.edit')->with('status', 'Profil perusahaan berhasil diperbarui.');
+    }
+
+    public function ajukanVerifikasi(Request $permintaan): RedirectResponse
+    {
+        $pengguna = $this->perusahaan($permintaan);
+
+        if ($pengguna->status_verifikasi === 'Terverifikasi') {
+            return redirect()->route('akun.edit')->with('status', 'Akun perusahaan Anda sudah terverifikasi.');
+        }
+
+        $valid = $permintaan->validate([
+            'nib_npwp' => ['required', 'string', 'min:10', 'max:50', 'regex:/^[0-9A-Za-z.\-\/\s]+$/'],
+            'dokumen_legalitas' => [$pengguna->dokumen_legalitas_path ? 'nullable' : 'required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'pernyataan_kebenaran' => ['accepted'],
+        ], [
+            'nib_npwp.required' => 'Nomor NIB atau NPWP perusahaan wajib diisi.',
+            'nib_npwp.min' => 'Nomor NIB atau NPWP minimal :min karakter.',
+            'nib_npwp.regex' => 'Format Nomor NIB / NPWP tidak valid.',
+            'dokumen_legalitas.required' => 'Dokumen legalitas usaha (NIB / SIUP / Akta) wajib diunggah.',
+            'pernyataan_kebenaran.accepted' => 'Anda wajib menyetujui pernyataan kebenaran data dan legalitas perusahaan.',
+        ]);
+
+        $profil = $pengguna->profil_pendaftaran ?? [];
+        $kurang = [];
+
+        foreach ([
+            'bentuk_badan_usaha' => 'Bentuk badan usaha',
+            'tahun_berdiri' => 'Tahun berdiri',
+            'telepon' => 'Nomor telepon',
+            'email_hrd' => 'Email HRD resmi',
+            'bidang_usaha' => 'Bidang usaha',
+            'jumlah_karyawan' => 'Jumlah karyawan',
+            'provinsi_perusahaan' => 'Provinsi perusahaan',
+            'kota_perusahaan' => 'Kota perusahaan',
+            'kode_pos' => 'Kode pos',
+            'alamat_perusahaan' => 'Alamat perusahaan',
+            'deskripsi_perusahaan' => 'Deskripsi perusahaan',
+            'visi_misi' => 'Visi & misi perusahaan',
+            'nama_penanggung_jawab' => 'Nama penanggung jawab',
+            'jabatan_penanggung_jawab' => 'Jabatan penanggung jawab',
+        ] as $kunci => $label) {
+            if (blank($profil[$kunci] ?? null)) {
+                $kurang[] = $label;
+            }
+        }
+
+        if (mb_strlen((string) ($profil['deskripsi_perusahaan'] ?? '')) < 30) {
+            $kurang[] = 'Deskripsi perusahaan minimal 30 karakter';
+        }
+
+        if (blank($pengguna->foto_profil_path)) {
+            $kurang[] = 'Logo / foto profil perusahaan';
+        }
+
+        if ($kurang !== []) {
+            return back()
+                ->withInput()
+                ->withErrors(['verifikasi' => 'Lengkapi terlebih dahulu persyaratan berikut di menu Profil Perusahaan: '.implode(', ', $kurang).'.']);
+        }
+
+        if ($permintaan->hasFile('dokumen_legalitas')) {
+            if ($pengguna->dokumen_legalitas_path) {
+                Storage::disk('local')->delete($pengguna->dokumen_legalitas_path);
+            }
+            $pengguna->dokumen_legalitas_path = $permintaan->file('dokumen_legalitas')->store('legalitas-perusahaan', 'local');
+        }
+
+        $profil['nib_npwp'] = trim($valid['nib_npwp']);
+        $pengguna->profil_pendaftaran = $profil;
+        $pengguna->status_verifikasi = 'Menunggu Verifikasi';
+        $pengguna->catatan_verifikasi = null;
+        $pengguna->save();
+        Cache::forget('admin:menunggu_verifikasi_count');
+
+        return redirect()->route('akun.edit')->with('status', 'Pengajuan verifikasi perusahaan berhasil dikirim ke Admin. Silakan tunggu peninjauan.');
     }
 
     public function perbaruiEmail(Request $permintaan): RedirectResponse

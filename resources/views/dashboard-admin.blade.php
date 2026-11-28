@@ -65,13 +65,16 @@
                 </div>
             </section>
 
-            <!-- Compact Stat Card -->
+            <!-- Ads Management Card -->
             <section class="flex items-center justify-between gap-4 rounded-3xl border-[1.5px] border-slate-200/90 bg-white/80 p-5 shadow-[0_10px_30px_-10px_rgba(15,23,42,0.1)] backdrop-blur-xl sm:rounded-[28px]">
                 <div>
-                    <p class="text-xs font-semibold text-slate-500">Total Lamaran Masuk</p>
-                    <p class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 tabular-nums">+{{ number_format($totalLamaran, 0, ',', '.') }} <span class="text-xs font-semibold text-slate-400">Lamaran</span></p>
+                    <p class="text-xs font-semibold text-slate-500">Iklan Loker (Ads)</p>
+                    <p class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 tabular-nums">{{ number_format($iklanAktifCount ?? 0, 0, ',', '.') }} <span class="text-xs font-semibold text-slate-400">Ads Aktif</span></p>
                 </div>
-                <span class="rounded-full bg-[#007AFF] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm shadow-[#007AFF]/25">Aktif</span>
+                <a href="{{ route('admin.ads.index') }}" class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#007AFF] px-4 py-2 text-xs font-bold !text-white shadow-sm shadow-[#007AFF]/25 transition hover:bg-[#0062CC]">
+                    Kelola Ads
+                    <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17 17 7M8 7h9v9"/></svg>
+                </a>
             </section>
         </div>
 
@@ -135,7 +138,7 @@
                     <p class="mt-0.5 text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">{{ number_format($totalAkun, 0, ',', '.') }} <span class="text-lg font-semibold text-slate-400">User</span></p>
                 </div>
 
-                <div class="my-3 overflow-hidden">
+                <div class="mt-3 overflow-hidden">
                     <svg class="h-14 w-full" viewBox="0 0 300 60" fill="none" preserveAspectRatio="none" aria-hidden="true">
                         <defs>
                             <linearGradient id="lokerkuWaveGrad" x1="0" y1="0" x2="0" y2="1">
@@ -146,17 +149,6 @@
                         <path d="M0 40 C 35 15, 65 48, 95 28 C 125 8, 155 45, 190 22 C 225 5, 260 44, 300 18 L 300 60 L 0 60 Z" fill="url(#lokerkuWaveGrad)"/>
                         <path d="M0 40 C 35 15, 65 48, 95 28 C 125 8, 155 45, 190 22 C 225 5, 260 44, 300 18" stroke="#007AFF" stroke-width="2.2" stroke-linecap="round"/>
                     </svg>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                    <a class="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full bg-[#007AFF] px-4 text-xs font-bold text-white shadow-sm shadow-[#007AFF]/25 transition hover:bg-[#0062CC]" href="{{ route('admin.verifikasi.index') }}">
-                        Verifikasi
-                        <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5m-5 5 5-5 5 5"/></svg>
-                    </a>
-                    <a class="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition hover:border-[#007AFF]/40 hover:bg-[#E0F2FE] hover:text-[#007AFF]" href="{{ route('admin.pengguna.index') }}">
-                        Pengguna
-                        <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14m-5-5 5 5 5-5"/></svg>
-                    </a>
                 </div>
             </section>
 

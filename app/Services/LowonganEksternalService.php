@@ -58,6 +58,7 @@ class LowonganEksternalService
 
             $namaPerusahaan = Str::limit(trim((string) $item['company_name']), 100, '');
             $slugPerusahaan = Str::slug($namaPerusahaan) ?: 'perusahaan-eksternal';
+            $logoPerusahaan = trim((string) ($item['company_logo'] ?? ($item['company_logo_url'] ?? '')));
             $perusahaan = User::query()->firstOrCreate(
                 ['email' => "{$slugPerusahaan}@eksternal.lokerku.local"],
                 [
@@ -65,9 +66,14 @@ class LowonganEksternalService
                     'password' => Str::random(24),
                     'role' => 'perusahaan',
                     'status_verifikasi' => 'Terverifikasi',
+                    'foto_profil_path' => $logoPerusahaan !== '' ? $logoPerusahaan : null,
                     'email_verified_at' => now(),
                 ]
             );
+            if ($logoPerusahaan !== '' && blank($perusahaan->foto_profil_path)) {
+                $perusahaan->foto_profil_path = $logoPerusahaan;
+                $perusahaan->save();
+            }
 
             $judul = Str::limit(trim((string) $item['title']), 120, '');
             $lokasi = Str::limit(trim((string) ($item['candidate_required_location'] ?? '')) ?: 'Jarak jauh (Global)', 100, '');

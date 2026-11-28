@@ -16,6 +16,7 @@
         ['kunci' => 'lowongan', 'label' => 'Lowongan', 'url' => route('lowongan.index')],
         ['kunci' => 'kategori', 'label' => 'Kategori', 'url' => route('kategori.index')],
         ['kunci' => 'pengguna', 'label' => 'Pengguna', 'url' => route('admin.pengguna.index')],
+        ['kunci' => 'laporan', 'label' => 'Laporan', 'url' => route('admin.laporan.index')],
         ['kunci' => 'katalog', 'label' => 'Katalog', 'url' => route('admin.katalog.index')],
     ];
 @endphp
@@ -30,7 +31,7 @@
                 <header class="flex items-center justify-between gap-2 rounded-full border-[1.5px] border-slate-200/90 bg-white/90 px-3 py-2 shadow-sm backdrop-blur-xl sm:gap-4 sm:px-5 sm:py-2.5">
                     <!-- Brand -->
                     <a class="flex shrink-0 items-center gap-2 text-base font-extrabold tracking-tight text-slate-900 sm:text-lg" href="{{ route('dashboard.role', ['role' => 'admin']) }}">
-                        <span class="grid size-8 place-items-center rounded-full bg-[#007AFF] text-xs font-black text-white shadow-md shadow-[#007AFF]/30 sm:size-9 sm:text-sm">L</span>
+                        <img src="{{ asset('logo.png') }}" alt="Lokerku" class="size-8 rounded-full object-cover shadow-sm sm:size-9">
                         <span>lokerku<span class="text-[#007AFF]">.</span></span>
                     </a>
 
@@ -55,21 +56,21 @@
                     </div>
                 </header>
 
-                <!-- Mobile & Tablet Dropdown List (Right-Aligned Single Column) -->
-                <nav id="mobile-admin-nav" class="absolute right-0 top-full mt-2 hidden w-60 max-w-[calc(100vw-2rem)] rounded-2xl border-[1.5px] border-slate-200/90 bg-white/95 p-2 shadow-2xl backdrop-blur-2xl lg:hidden" aria-label="Menu seluler admin">
-                    <div class="flex flex-col gap-1">
+                <!-- Mobile & Tablet Dropdown List (Right-Aligned Compact Fit) -->
+                <nav id="mobile-admin-nav" class="absolute right-0 top-full mt-2 hidden w-max min-w-[140px] max-w-[calc(100vw-2rem)] rounded-2xl border-[1.5px] border-slate-200/90 bg-white/95 p-1.5 shadow-2xl backdrop-blur-2xl lg:hidden" aria-label="Menu seluler admin">
+                    <div class="flex flex-col gap-0.5">
                         @foreach ($tabNavigasi as $tab)
                             <a @class([
-                                'flex items-center rounded-xl px-3.5 py-2.5 text-xs font-bold transition',
+                                'flex items-center whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition',
                                 'bg-[#007AFF] !text-white shadow-sm shadow-[#007AFF]/25' => $aktif === $tab['kunci'],
                                 'text-slate-700 hover:bg-[#E0F2FE] hover:text-[#007AFF]' => $aktif !== $tab['kunci'],
                             ]) href="{{ $tab['url'] }}" onclick="document.getElementById('mobile-admin-nav').classList.add('hidden')">{{ $tab['label'] }}</a>
                         @endforeach
                     </div>
-                    <div class="mt-2 border-t border-slate-200/70 pt-2">
+                    <div class="mt-1.5 border-t border-slate-200/70 pt-1.5">
                         <form action="{{ route('logout') }}" method="POST" data-kirim>
                             @csrf
-                            <button class="flex w-full items-center rounded-xl px-3.5 py-2 text-left text-xs font-bold text-rose-600 transition hover:bg-rose-50" type="submit">Keluar</button>
+                            <button class="flex w-full items-center whitespace-nowrap rounded-xl px-3.5 py-2 text-left text-xs font-bold text-rose-600 transition hover:bg-rose-50" type="submit">Keluar</button>
                         </form>
                     </div>
                 </nav>
@@ -120,6 +121,10 @@
                             <a href="{{ route('admin.pengguna.index') }}" title="Pengguna" aria-label="Pengguna" @class(['flex h-10 w-10 items-center justify-center rounded-full transition', 'bg-[#007AFF] !text-white shadow-md shadow-[#007AFF]/30' => $aktif === 'pengguna', 'text-slate-500 hover:bg-[#E0F2FE] hover:text-[#007AFF]' => $aktif !== 'pengguna']) data-dock-item>
                                 <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8.5" r="3.4"/><path d="M5 20c.8-3.4 3.4-5.2 7-5.2s6.2 1.8 7 5.2"/></svg>
                                 <span class="hidden truncate text-xs font-semibold" data-dock-label>Pengguna</span>
+                            </a>
+                            <a href="{{ route('admin.laporan.index') }}" title="Laporan" aria-label="Laporan" @class(['flex h-10 w-10 items-center justify-center rounded-full transition', 'bg-[#007AFF] !text-white shadow-md shadow-[#007AFF]/30' => $aktif === 'laporan', 'text-slate-500 hover:bg-[#E0F2FE] hover:text-[#007AFF]' => $aktif !== 'laporan']) data-dock-item>
+                                <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+                                <span class="hidden truncate text-xs font-semibold" data-dock-label>Laporan</span>
                             </a>
                             <a href="{{ route('admin.katalog.index') }}" title="Katalog" aria-label="Katalog" @class(['flex h-10 w-10 items-center justify-center rounded-full transition', 'bg-[#007AFF] !text-white shadow-md shadow-[#007AFF]/30' => $aktif === 'katalog', 'text-slate-500 hover:bg-[#E0F2FE] hover:text-[#007AFF]' => $aktif !== 'katalog']) data-dock-item>
                                 <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6.2"/><path d="m20 20-4.4-4.4"/></svg>

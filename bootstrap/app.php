@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureNotBanned;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,14 +17,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $perantara): void {
+        $perantara->trustProxies(at: '*');
         $perantara->trustHosts(at: function (): array {
             $namaHost = parse_url(config('app.url'), PHP_URL_HOST);
 
             return in_array($namaHost, ['localhost', '127.0.0.1'], true)
                 ? ['^localhost$', '^127\.0\.0\.1$']
-                : ['^'.preg_quote($namaHost, '/').'$'];
+                : ['^'.preg_quote((string) $namaHost, '/').'$', '^.*\.vercel\.app$'];
         }, subdomains: false);
         $perantara->append(SecurityHeaders::class);
+        $perantara->appendToGroup('web', EnsureNotBanned::class);
+        $perantara->validateCsrfTokens(except: ['webhook/paymenku']);
         $perantara->redirectUsersTo(fn (Request $permintaan): string => route('dashboard'));
     })
     ->withExceptions(function (Exceptions $penangananKesalahan): void {

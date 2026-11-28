@@ -43,4 +43,11 @@ return [
         'base_url' => env('REMOTIVE_API_URL', 'https://remotive.com/api'),
     ],
 
+    'paymenku' => [
+        'base_url' => env('PAYMENKU_BASE_URL', 'https://paymenku.com/api/v1'),
+        'api_key' => env('PAYMENKU_API_KEY'),
+        'webhook_secret' => env('PAYMENKU_WEBHOOK_SECRET'),
+        'allow_sandbox' => env('PAYMENKU_ALLOW_SANDBOX', true),
+    ],
+
 ];

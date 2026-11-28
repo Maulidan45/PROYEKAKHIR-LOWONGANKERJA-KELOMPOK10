@@ -26,6 +26,9 @@
                         <div class="baris-atas-detail">
                             <div>
                                 <div class="mb-2 flex flex-wrap items-center gap-2">
+                                    @if ($lowongan->sedangDiiklankan())
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#007AFF] to-sky-500 px-3 py-0.5 text-xs font-bold text-white shadow-xs">&#9733; Rekomendasi</span>
+                                    @endif
                                     @if ($lowongan->adalahEksternal())
                                         <span class="rounded-full bg-indigo-50 px-3 py-0.5 text-xs font-semibold text-indigo-700">Lowongan Eksternal · Sumber Remotive</span>
                                     @else
@@ -55,6 +58,7 @@
                                         @elseif ($lowongan->masihMenerimaLamaran())
                                             <button type="button" class="tombol tombol-utama" onclick="const m = document.getElementById('modal-lamar-cepat'); m.classList.remove('hidden'); m.classList.add('flex');">Lamar Sekarang</button>
                                         @endif
+                                        <button type="button" class="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-100" onclick="const m = document.getElementById('modal-laporkan-loker'); m.classList.remove('hidden'); m.classList.add('flex');">Laporkan</button>
                                     @endif
                                 @else
                                     @if ($lowongan->adalahEksternal() && $lowongan->sumber_url)
@@ -379,6 +383,35 @@
                             <button type="submit" class="rounded-full bg-[#007AFF] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-[#007AFF]/25 transition hover:bg-[#0062CC]" data-teks-proses="Mengirim…">
                                 {{ $berkasProfilLengkap ? 'Konfirmasi & Kirim Lamaran' : 'Kirim Lamaran' }}
                             </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal Laporkan Lowongan (Scam / Bermasalah) -->
+            <div id="modal-laporkan-loker" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="judul-laporkan-loker">
+                <div class="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+                    <h2 id="judul-laporkan-loker" class="text-base font-extrabold text-slate-900">Laporkan Lowongan Bermasalah</h2>
+                    <p class="mt-1 text-xs text-slate-500">Laporkan jika lowongan <strong class="text-slate-800">{{ $lowongan->judul }}</strong> terindikasi scam, penipuan, atau melanggar aturan.</p>
+                    <form method="POST" action="{{ route('laporan.store') }}" class="mt-4 space-y-4" data-kirim>
+                        @csrf
+                        <input type="hidden" name="jenis" value="lowongan">
+                        <input type="hidden" name="lowongan_id" value="{{ $lowongan->id }}">
+                        <div>
+                            <label for="kat-laporan-loker" class="mb-1.5 block text-xs font-bold text-slate-700">Alasan Laporan</label>
+                            <select id="kat-laporan-loker" name="kategori_laporan" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 focus:border-[#007AFF] focus:outline-none">
+                                @foreach (App\Models\Laporan::KATEGORI_LOWONGAN as $kat)
+                                    <option value="{{ $kat }}">{{ $kat }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="desk-laporan-loker" class="mb-1.5 block text-xs font-bold text-slate-700">Detail Masalah</label>
+                            <textarea id="desk-laporan-loker" name="deskripsi" rows="3" required minlength="10" maxlength="1500" class="w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm text-slate-800 focus:border-[#007AFF] focus:outline-none" placeholder="Jelaskan indikasi scam atau masalah yang Anda temukan…"></textarea>
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <button type="button" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50" onclick="const m = document.getElementById('modal-laporkan-loker'); m.classList.add('hidden'); m.classList.remove('flex');">Batal</button>
+                            <button type="submit" class="rounded-full bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-rose-700" data-teks-proses="Mengirim…">Kirim Laporan</button>
                         </div>
                     </form>
                 </div>

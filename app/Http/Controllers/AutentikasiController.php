@@ -22,7 +22,7 @@ class AutentikasiController extends Controller
         $pengguna = new User;
         $pengguna->fill(Arr::only($data, ['name', 'email', 'password']));
         $pengguna->role = $data['role'];
-        $pengguna->status_verifikasi = $data['role'] === 'perusahaan' ? 'Menunggu Verifikasi' : 'Terverifikasi';
+        $pengguna->status_verifikasi = $data['role'] === 'perusahaan' ? 'Belum Diajukan' : 'Terverifikasi';
         $pengguna->profil_pendaftaran = Arr::except($data, ['name', 'email', 'password', 'role']);
         try {
             $pengguna->save();
@@ -50,6 +50,16 @@ class AutentikasiController extends Controller
 
         if (strlen($kredensial['password']) > 72 || str_contains($kredensial['password'], "\0") || ! Auth::attempt($kredensial)) {
             throw ValidationException::withMessages(['email' => 'Email atau kata sandi tidak cocok.']);
+        }
+
+        $penggunaLogin = Auth::user();
+        if ($penggunaLogin?->is_banned) {
+            $alasan = $penggunaLogin->alasan_ban ? " Alasan: {$penggunaLogin->alasan_ban}" : '';
+            Auth::logout();
+            $permintaan->session()->invalidate();
+            $permintaan->session()->regenerateToken();
+
+            throw ValidationException::withMessages(['email' => "Akun Anda telah dibanned oleh admin.{$alasan}"]);
         }
 
         $permintaan->session()->regenerate();

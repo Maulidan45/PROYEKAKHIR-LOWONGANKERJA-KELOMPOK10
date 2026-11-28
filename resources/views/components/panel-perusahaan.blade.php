@@ -27,7 +27,7 @@
                 <header class="flex items-center justify-between gap-2 rounded-full border-[1.5px] border-slate-200/90 bg-white/90 px-3 py-2 shadow-sm backdrop-blur-xl sm:gap-4 sm:px-5 sm:py-2.5">
                     <!-- Brand -->
                     <a class="flex shrink-0 items-center gap-2 text-base font-extrabold tracking-tight text-slate-900 sm:text-lg" href="{{ route('dashboard.role', ['role' => 'perusahaan']) }}">
-                        <span class="grid size-8 place-items-center rounded-full bg-[#007AFF] text-xs font-black text-white shadow-md shadow-[#007AFF]/30 sm:size-9 sm:text-sm">L</span>
+                        <img src="{{ asset('logo.png') }}" alt="Lokerku" class="size-8 rounded-full object-cover shadow-sm sm:size-9">
                         <span>lokerku<span class="text-[#007AFF]">.</span></span>
                     </a>
 
@@ -56,21 +56,21 @@
                     </div>
                 </header>
 
-                <!-- Mobile & Tablet Dropdown List (Right-Aligned Single Column) -->
-                <nav id="mobile-perusahaan-nav" class="absolute right-0 top-full mt-2 hidden w-60 max-w-[calc(100vw-2rem)] rounded-2xl border-[1.5px] border-slate-200/90 bg-white/95 p-2 shadow-2xl backdrop-blur-2xl lg:hidden" aria-label="Menu seluler perusahaan">
-                    <div class="flex flex-col gap-1">
+                <!-- Mobile & Tablet Dropdown List (Right-Aligned Compact Fit) -->
+                <nav id="mobile-perusahaan-nav" class="absolute right-0 top-full mt-2 hidden w-max min-w-[140px] max-w-[calc(100vw-2rem)] rounded-2xl border-[1.5px] border-slate-200/90 bg-white/95 p-1.5 shadow-2xl backdrop-blur-2xl lg:hidden" aria-label="Menu seluler perusahaan">
+                    <div class="flex flex-col gap-0.5">
                         @foreach ($tabNavigasi as $tab)
                             <a @class([
-                                'flex items-center rounded-xl px-3.5 py-2.5 text-xs font-bold transition',
+                                'flex items-center whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition',
                                 'bg-[#007AFF] !text-white shadow-sm shadow-[#007AFF]/25' => $aktif === $tab['kunci'],
                                 'text-slate-700 hover:bg-[#E0F2FE] hover:text-[#007AFF]' => $aktif !== $tab['kunci'],
                             ]) href="{{ $tab['url'] }}" onclick="document.getElementById('mobile-perusahaan-nav').classList.add('hidden')">{{ $tab['label'] }}</a>
                         @endforeach
                     </div>
-                    <div class="mt-2 border-t border-slate-200/70 pt-2">
+                    <div class="mt-1.5 border-t border-slate-200/70 pt-1.5">
                         <form action="{{ route('logout') }}" method="POST" data-kirim>
                             @csrf
-                            <button class="flex w-full items-center rounded-xl px-3.5 py-2 text-left text-xs font-bold text-rose-600 transition hover:bg-rose-50" type="submit">Keluar</button>
+                            <button class="flex w-full items-center whitespace-nowrap rounded-xl px-3.5 py-2 text-left text-xs font-bold text-rose-600 transition hover:bg-rose-50" type="submit">Keluar</button>
                         </form>
                     </div>
                 </nav>
