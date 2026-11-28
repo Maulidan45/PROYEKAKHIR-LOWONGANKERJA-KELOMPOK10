@@ -19,12 +19,20 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $perantara): void {
         $perantara->trustProxies(at: '*');
         $perantara->trustHosts(at: function (): array {
-            $namaHost = parse_url(config('app.url'), PHP_URL_HOST);
+            $hosts = ['^.*\.vercel\.app$'];
+            $namaHost = parse_url((string) config('app.url'), PHP_URL_HOST);
 
-            return in_array($namaHost, ['localhost', '127.0.0.1'], true)
-                ? ['^localhost$', '^127\.0\.0\.1$']
-                : ['^'.preg_quote((string) $namaHost, '/').'$', '^.*\.vercel\.app$'];
-        }, subdomains: false);
+            if (is_string($namaHost) && $namaHost !== '') {
+                $hosts[] = '^'.preg_quote($namaHost, '/').'$';
+            }
+
+            if (in_array($namaHost, ['localhost', '127.0.0.1', null, ''], true)) {
+                $hosts[] = '^localhost$';
+                $hosts[] = '^127\.0\.0\.1$';
+            }
+
+            return array_values(array_unique($hosts));
+        }, subdomains: true);
         $perantara->append(SecurityHeaders::class);
         $perantara->appendToGroup('web', EnsureNotBanned::class);
         $perantara->validateCsrfTokens(except: ['webhook/paymenku']);
