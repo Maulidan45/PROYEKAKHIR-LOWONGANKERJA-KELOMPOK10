@@ -96,7 +96,7 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => env('DB_SSLMODE', 'verify-full'),
+            'sslmode' => env('DB_SSLMODE', 'verify-ca'),
             'sslrootcert' => env('DB_SSLROOTCERT', str_replace('\\', '/', database_path('certificates/supabase-root-2021.crt'))),
             'options' => [PDO::ATTR_EMULATE_PREPARES => true],
         ],
